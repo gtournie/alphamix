@@ -1,0 +1,39 @@
+{
+  "name": "alphamix-server",
+  "version": "1.0.0",
+  "scripts": {
+    "test": "DATABASE_URL=\"postgresql://postgres:12345678@localhost:5423/scribel-db-test?schema=public\" prisma migrate reset --skip-seed --force && vitest",
+    "dev": "bun run --watch src/index.ts",
+    "build": "bun build --compile --minify-whitespace --minify-syntax --target bun --outfile server ./src/index.ts",
+    "start": "./server",
+    "prisma:generate": "prisma generate",
+    "prisma:migrate": "prisma migrate dev",
+    "prisma:reset": "prisma migrate reset --skip-seed --force",
+    "prisma:seed": "bun run scripts/seeds.js",
+    "prisma:studio": "prisma studio",
+    "prisma:format": "prisma format"
+  },
+  "dependencies": {
+    "@elysiajs/cors": "1.2.0",
+    "@prisma/client": "6.6.0",
+    "@sinclair/typebox": "0.34.37",
+    "@types/jsonwebtoken": "9.0.9",
+    "arctic": "3.6.0",
+    "better-auth": "1.2.7",
+    "elysia": "1.2.25",
+    "elysia-oauth2": "2.0.0",
+    "game-core": "workspace:*",
+    "jsonwebtoken": "9.0.2",
+    "uuid": "^11.1.0"
+  },
+  "devDependencies": {
+    "bun-types": "1.2.10",
+    "prisma": "6.6.0"
+  },
+  "type": "module",
+  "module": "src/index.js",
+  "prisma": {
+    "seed": "bun scripts/seeds.js",
+    "schema": "./prisma/schema.prisma"
+  }
+}

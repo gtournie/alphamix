@@ -1,0 +1,16 @@
+{
+  "name": "game-core",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "test": "bunx vitest",
+    "test:coverage": "bunx vitest run --coverage"
+  },
+  "devDependencies": {
+    "@vitest/coverage-v8": "3.1.2",
+    "@vitest/ui": "3.1.2",
+    "tsx": "^4.19.4"
+  },
+  "type": "module",
+  "dependencies": {}
+}

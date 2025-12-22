@@ -1,0 +1,46 @@
+{
+  "name": "frontend",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "bunx --bun vite dev",
+    "build": "bunx --bun vite build",
+    "preview": "bunx --bun vite preview",
+    "test": "bunx vitest",
+    "test:ui": "bunx vitest --ui",
+    "test:coverage": "bunx vitest run --coverage",
+    "cap:dev": "bunx --bun vite build && npx cap sync && npx cap open",
+    "cap:build": "bunx --bun vite build && npx cap sync",
+    "cap:ios": "bunx cap open ios",
+    "cap:android": "bunx cap open android"
+  },
+  "dependencies": {
+    "@capacitor/app": "7.0.1",
+    "@capacitor/haptics": "7.0.1",
+    "@capacitor/keyboard": "7.0.1",
+    "@capacitor/status-bar": "7.0.1",
+    "svelte": "5.25.6",
+    "tailwindcss": "4.1.4"
+  },
+  "devDependencies": {
+    "@capacitor/android": "7.2.0",
+    "@capacitor/cli": "7.2.0",
+    "@capacitor/core": "7.2.0",
+    "@capacitor/ios": "7.2.0",
+    "@sveltejs/vite-plugin-svelte": "5.0.3",
+    "@tailwindcss/postcss": "4.1.2",
+    "@tailwindcss/vite": "4.1.2",
+    "@testing-library/svelte": "5.2.7",
+    "@tsconfig/svelte": "5.0.4",
+    "@types/node": "22.14.0",
+    "@vitest/coverage-v8": "3.1.1",
+    "@vitest/ui": "3.1.1",
+    "autoprefixer": "10.4.21",
+    "postcss": "8.5.3",
+    "svelte-check": "4.1.5",
+    "typescript": "5.8.2",
+    "vite": "6.2.5",
+    "vitest": "3.1.1"
+  }
+}

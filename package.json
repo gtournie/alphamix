@@ -1,0 +1,16 @@
+{
+  "name": "alphamix",
+  "version": "1.0.0",
+  "workspaces": [
+    "packages/hono-backend",
+    "packages/frontend",
+    "packages/game-core"
+  ],
+  "dependencies": {
+    "baseline-browser-mapping": "^2.9.11",
+    "caniuse-lite": "^1.0.30001761"
+  },
+  "devDependencies": {
+    "vitest": "3.1.2"
+  }
+}

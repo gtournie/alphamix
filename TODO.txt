@@ -1,0 +1,5 @@
+ - mode de jeu ouvert (on voit les lettres des adversaires)
+ - rejouer le même jeu (même distribution des lettres au départ)
+ - mode meilleure répartition des voyelles / consonnes
+ - mode meilleure répartition des points entre joueurs
+ - 

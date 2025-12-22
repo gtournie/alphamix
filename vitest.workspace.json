@@ -1,0 +1,5 @@
+[
+  "packages/frontend",
+  "packages/game-core",
+  "packages/hono-backend"
+]

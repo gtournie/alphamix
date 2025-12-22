@@ -1,0 +1,2 @@
+générer les fichier 1mot.json et autres avec le format qui va bien pour 
+l'utiliser direct dans un Map()
