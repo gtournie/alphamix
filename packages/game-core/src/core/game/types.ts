@@ -103,7 +103,7 @@ export interface CheckLettersResult {
 
 export interface PlayWordResult {
   valid: true;
-  error: null;
+  errors: object;
   score: number;
   wordSpan: WordSpan;
   crossWordSpans: WordSpan[]
@@ -123,8 +123,6 @@ export interface Combinations {
   incomplete: [string, string][];
 }
 
-export interface AlphaCombinations {
-  [key: string]: string[];
-}
+export type AlphaCombinations = string[][];
 
 export type HistorySymbol = typeof HISTORY_DELIMITERS[keyof typeof HISTORY_DELIMITERS];

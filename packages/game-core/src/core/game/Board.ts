@@ -1,11 +1,10 @@
-import { sortAsciiString, combinations as combinationsUtil, objectToMap, objectToSet, escapeRegexp, range } from './utils.js';
+import { sortAsciiString, range } from './utils.js';
 import type {
   GridTile,
   WordResult,
   Bonus,
   Bonuses,
   Combinations,
-  AlphaCombinations,
   PlayerTile,
   NodeGridTile,
   CheckLettersResult,
@@ -19,9 +18,10 @@ import type {
 import { InvalidHistoryError } from './Exceptions.js';
 import { HistoryEntry } from './HistoryEntry.js';
 import { History } from './History.js';
-import { TILE_BLANK, BOARD_SQUARE_BONUSES, BOARD_EMPTY_SQUARE, BINGO_BONUS, TILE_SCORE, TILE_RACK_SIZE, HISTORY_DELIMITERS } from './const.js';
+import { BOARD_SQUARE_BONUSES, BOARD_EMPTY_SQUARE, BINGO_BONUS, TILE_SCORE, TILE_RACK_SIZE, HISTORY_DELIMITERS } from './const.js';
 import DB from '../../../data/1mot';
 import WORDS_BY_SORTED_LETTERS from '../../../data/words-by-sorted-letters';
+import { CombinationGenerator } from './CombinationGenerator.js';
 
 
 export class Board {
@@ -47,13 +47,6 @@ export class Board {
   })(BOARD_SQUARE_BONUSES);
 
   static readonly INVERTED_BONUS_GRID = this.prototype.invertGrid(this.BONUS_GRID);
-
-  // 2 blank tiles max
-  static readonly ALPHA_COMBINATIONS: AlphaCombinations = {
-    1: combinationsUtil('ABCDEFGHIJKLMNOPQRSTUVWXYZ', 1),
-    2: combinationsUtil('ABCDEFGHIJKLMNOPQRSTUVWXYZ', 2),
-  };
-  static readonly REPLACE_BLANK_REG = new RegExp(escapeRegexp(TILE_BLANK), 'g');
 
   static counter = 0;
   static _workerCode = null;
@@ -246,7 +239,7 @@ export class Board {
   }
 
   public checkLetters(letters: PlayerTile[]): CheckLettersResult {
-    if (letters.length === 0) return { valid: false, error: 'noTilesGiven' };
+    if (letters.length === 0) return { valid: false, errors: { noTilesGiven: true } };
 
     let hCheck;
     // Check horizontal
@@ -257,7 +250,7 @@ export class Board {
 
     // Check vertical
     let vCheck = this.checkHorizontalLetters(this.vGrid, letters.map(l => ({ ...l, y: l.x, x: l.y })), true);
-    return letters.length > 1 || vCheck.wordSpan?.word?.length > hCheck.wordSpan?.word?.length ? vCheck : hCheck;
+    return letters.length > 1 || !hCheck || (vCheck.wordSpan?.word?.length || 0) > (hCheck.wordSpan?.word?.length || 0) ? vCheck : hCheck;
   }
 
   // This function check if the letters are placed correctly
@@ -516,55 +509,6 @@ export class Board {
     return enrichedGrid;
   }
 
-  private combinationsByLength(str: string): Combinations[] {
-    const len = str.length;
-    const amount = 1 << len;
-    const output: Combinations[] = [];
-    const keys = new Set<string>();
-
-    const add = (letters: string, blanks: string): void => {
-      const sortedLetters = sortAsciiString(letters);
-      if (!keys.has(sortedLetters)) {
-        keys.add(sortedLetters);
-
-        output[letters.length].incomplete.push([sortedLetters, blanks]);
-        if (WORDS_BY_SORTED_LETTERS.has(sortedLetters)) {
-          output[letters.length].strict.push([sortedLetters, blanks]);
-        }
-      }
-    };
-
-    for (let i = 0; i <= len; ++i) {
-      output.push({ strict: [], incomplete: [] });
-    }
-
-    for (let i = 1; i < amount; ++i) {
-      let rest = '';
-      const blanks: string[] = [];
-
-      for (let j = 0; j < len; ++j) {
-        if ((1 << j) & i) {
-          const c = str.charAt(j);
-          if (c === TILE_BLANK) blanks.push(c);
-          rest += c;
-        }
-      }
-
-      if (blanks.length !== 0) {
-        const comb = Board.ALPHA_COMBINATIONS[blanks.length];
-        for (let k = comb.length - 1; k >= 0; --k) {
-          const blankValues = comb[k];
-          let index = 0;
-          add(rest.replace(Board.REPLACE_BLANK_REG, () => blankValues.charAt(index++)), blankValues);
-        }
-      } else {
-        add(rest, '');
-      }
-    }
-
-    return output;
-  }
-
   // private checkHorizontalWord(word: string, start: string, end: string, letters: Array<[number, number]>): boolean {
   //   if (end.length !== 0 && !word.endsWith(end)) return false;
   //   if (start.length !== 0 && !word.startsWith(start)) return false;
@@ -596,6 +540,7 @@ export class Board {
     for (let index = word.length - end.length - 1; index >= startLength; --index) {
       const tile = grid[y][x + index];
       if (tile.isEmpty) {
+        // check validWordWith with one letter
         if (!(tile.validWordWith & (1 << (word.charCodeAt(index) - 65)))) return false; // 65 is the ASCII code of 'A'
       } else {
         if (tile.code !== word.charCodeAt(index)) return false;
@@ -664,7 +609,9 @@ export class Board {
 
     for (let k = combi.length - 1; k >= 0; --k) {
       let [str, blanks] = combi[k];
-      if (!hValid) str = sortAsciiString(extraLetters, str);
+      if (!hValid) {
+        str = sortAsciiString(extraLetters, str);
+      }
 
       const words = WORDS_BY_SORTED_LETTERS.get(str);
       if (!words) continue;
@@ -698,9 +645,9 @@ export class Board {
   public solve(letters: string): WordResult[] {
     const results: WordResult[] = [];
     const maxSpotCount = Math.min(letters.length, TILE_RACK_SIZE);
-    const allCombinations = this.combinationsByLength(letters);
-    this.solveHorizontal(results, allCombinations, maxSpotCount, false);
-    this.solveHorizontal(results, allCombinations, maxSpotCount, true);
+    const allCombinations = new CombinationGenerator(letters, WORDS_BY_SORTED_LETTERS).generate();
+    this.solveHorizontal(results, allCombinations, maxSpotCount, false, false);
+    this.solveHorizontal(results, allCombinations, maxSpotCount, true, false);
     return results;
   }
 
@@ -709,7 +656,7 @@ export class Board {
     for (let i = userLetters.length - 1; i >= 0; --i) {
       const letters = userLetters[i];
       const maxSpotCount = Math.min(letters.length, TILE_RACK_SIZE);
-      const allCombinations = this.combinationsByLength(letters);
+      const allCombinations = new CombinationGenerator(letters, WORDS_BY_SORTED_LETTERS).generate();
       if (this.solveHorizontal(results, allCombinations, maxSpotCount, false, true) ||
         this.solveHorizontal(results, allCombinations, maxSpotCount, true, true)) return false;
     }

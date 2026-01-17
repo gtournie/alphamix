@@ -27,14 +27,14 @@ describe('board.checkLetters', () => {
     let check;
 
     check = board.checkLetters('MAiSON'.split('').map((c, index) => ({ char: c, x: 2 + index, y: 7 })));
-    expect(check.error).toBe(null);
+    expect(check.errors).toEqual({});
     expect(check.valid).toBe(true);
     expect(check.wordSpan?.word).toBe('MAiSON');
     expect(check.score).toBe(14);
     expect(check.crossWordSpans).toEqual([]);
 
     check = board.checkLetters('MAiSON'.split('').map((c, index) => ({ char: c, y: 2 + index, x: 7 })));
-    expect(check.error).toBe(null);
+    expect(check.errors).toEqual({});
     expect(check.valid).toBe(true);
     expect(check.wordSpan?.word).toBe('MAiSON');
     expect(check.score).toBe(14);
@@ -70,7 +70,7 @@ describe('board.checkLetters', () => {
       { char: 'E', x: 12, y: 8 },
       { char: 'Z', x: 12, y: 9 },
     ]);
-    expect(check.error).toBe(null);
+    expect(check.errors).toEqual({});
     expect(check.valid).toBe(true);
     expect(check.wordSpan).toEqual({
       valid: true,
@@ -88,7 +88,7 @@ describe('board.checkLetters', () => {
       { char: 'E', x: 9, y: 4 },
       { char: 'Z', x: 10, y: 4 },
     ]);
-    expect(check.error).toBe(null);
+    expect(check.errors).toEqual({});
     expect(check.valid).toBe(true);
     expect(check.wordSpan).toEqual({
       valid: true,
@@ -104,7 +104,7 @@ describe('board.checkLetters', () => {
       { char: 'S', x: 6, y: 4 },
       { char: 'E', x: 6, y: 5 },
     ]);
-    expect(check.error).toBe(null);
+    expect(check.errors).toEqual({});
     expect(check.valid).toBe(true);
     expect(check.wordSpan).toEqual({
       valid: true,
