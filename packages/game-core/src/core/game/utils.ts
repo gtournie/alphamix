@@ -12,24 +12,26 @@ export const parseInt15 = (() => {
  * @returns The sorted string
  */
 export function sortAsciiString(str: string, str2: string = ''): string {
-  const sortedCodes: number[] = [];
+  const len1 = str.length;
+  let len2 = str2.length;
+  const sortedCodes: number[] = new Array(len1 + len2);
 
-  // Add codes from second string first
-  for (let i = 0, len = str2.length; i < len; ++i) {
-    sortedCodes.push(str2.charCodeAt(i));
+  for (let i = 0; i < len2; i++) {
+    sortedCodes[i] = str2.charCodeAt(i);
   }
 
-  // Insert codes from first string in sorted order
-  for (let i = str.length - 1, j; i >= 0; --i) {
-    let currentCode = str.charCodeAt(i);
-    for (j = sortedCodes.length - 1; j >= 0 && sortedCodes[j] > currentCode; --j) {
+  for (let i = 0, j, currentCode; i < len1; i++) {
+    currentCode = str.charCodeAt(i);
+    for (j = len2 - 1; j >= 0 && sortedCodes[j] > currentCode; j--) {
       sortedCodes[j + 1] = sortedCodes[j];
     }
     sortedCodes[j + 1] = currentCode;
+    len2++;
   }
 
   return String.fromCharCode(...sortedCodes);
 }
+
 
 /**
  * Generates combinations of characters from a string
