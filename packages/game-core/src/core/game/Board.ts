@@ -1,4 +1,3 @@
-import { sortAsciiString, range } from './utils.js';
 import type {
   GridTile,
   WordResult,
@@ -21,7 +20,9 @@ import { History } from './History.js';
 import { BOARD_SQUARE_BONUSES, BOARD_EMPTY_SQUARE, BINGO_BONUS, TILE_SCORE, TILE_RACK_SIZE, HISTORY_DELIMITERS } from './const.js';
 import DB from '../../../data/1mot';
 import WORDS_BY_SORTED_LETTERS from '../../../data/words-by-sorted-letters';
-import { CombinationGenerator } from './CombinationGenerator.js';
+import { sortAsciiString } from './utils/string.js';
+import { range } from './utils/range.js';
+import letterCombinations from './utils/letter-combinations.js';
 
 
 export class Board {
@@ -100,10 +101,10 @@ export class Board {
         if (grid[historyEntry.y + addY][historyEntry.x + addX] === BOARD_EMPTY_SQUARE) {
           let char = historyEntry.chars.charAt(index);
           grid[historyEntry.y + addY][historyEntry.x + addX] = char;
-          ++index;
+          index++;
         }
-        if (historyEntry.isHorizontalWordTurn) ++addX;
-        if (historyEntry.isVerticalWordTurn) ++addY;
+        if (historyEntry.isHorizontalWordTurn) addX++;
+        if (historyEntry.isVerticalWordTurn) addY++;
       }
     });
     return new Board(grid);
@@ -162,8 +163,8 @@ export class Board {
     let refNode;
     // Check if all words on the grid are valids
     const invalidWords: Set<string> = new Set();
-    for (let y = 0; y < 15; ++y) {
-      for (let x = 0; x < 15; ++x) {
+    for (let y = 0; y < 15; y++) {
+      for (let x = 0; x < 15; x++) {
         const tile = this.hGrid[y][x];
         if (tile.isEmpty === true) {
           if (tile.left.length >= 2 && !DB.has(tile.left)) invalidWords.add(tile.left);
@@ -171,7 +172,7 @@ export class Board {
           if (tile.top.length >= 2 && !DB.has(tile.top)) invalidWords.add(tile.top);
           if (tile.bottom.length >= 2 && !DB.has(tile.bottom)) invalidWords.add(tile.bottom);
         } else {
-          ++countNonEmptyNodes;
+          countNonEmptyNodes++;
           const node = nodes[y][x];
           if (x > 0 && !this.hGrid[y][x - 1].isEmpty) node.leftNode = nodes[y][x - 1];
           if (x < 14 && !this.hGrid[y][x + 1].isEmpty) node.rightNode = nodes[y][x + 1];
@@ -218,19 +219,19 @@ export class Board {
     if (!squareGrid[historyEntry.y][historyEntry.x].isEmpty) throw new InvalidHistoryError();
 
     const letters = [];
-    for (let index = 0, addX = 0, len = historyEntry.chars.length; index < len; ++addX) {
+    for (let index = 0, addX = 0, len = historyEntry.chars.length; index < len; addX++) {
       if (historyEntry.x + addX >= 15) throw new InvalidHistoryError();
       if (squareGrid[historyEntry.y][historyEntry.x + addX].isEmpty) {
         let char = historyEntry.chars.charAt(index);
         letters.push({ char, [xAxis]: historyEntry.x + addX, [yAxis]: historyEntry.y } as unknown as PlayerTile)
-        ++index;
+        index++;
       }
     }
     const validation = this.checkLetters(letters);
     if (!validation.valid) throw new InvalidHistoryError();
 
     this._vGrid = this._hGrid = this._originalVGrid = void (0);
-    for (let i = letters.length - 1; i >= 0; --i) {
+    for (let i = letters.length - 1; i >= 0; i--) {
       const letter = letters[i];
       this.originalHGrid[letter.y][letter.x] = letter.char;
     }
@@ -272,7 +273,7 @@ export class Board {
     // Check if they're all on the same line or column
     let sameLine = true;
     const refLetter = letters[0];
-    for (let i = letters.length - 1; i >= 0; --i) {
+    for (let i = letters.length - 1; i >= 0; i--) {
       if (letters[i].y !== refLetter.y) sameLine = false;
     }
     if (!sameLine) return { valid: false, errors: { notInline: true } };
@@ -295,7 +296,7 @@ export class Board {
     let lettersIndex = 0;
     let attachedToExistingWord = false;
     // let oneInvalidCrossWord = false;
-    for (let i = firstX; i <= lastX; ++i) {
+    for (let i = firstX; i <= lastX; i++) {
       const tile = grid[y][i];
       if (tile.isEmpty === true) {
         // Check if the letter is connected
@@ -319,7 +320,7 @@ export class Board {
           attachedToExistingWord = tile.top.length !== 0 || tile.bottom.length !== 0 || tile.right.length !== 0 || tile.left.length !== 0;
         }
         wordSpan.word += char;
-        ++lettersIndex;
+        lettersIndex++;
       } else {
         wordSpan.word += tile.tileChar;
         attachedToExistingWord = true;
@@ -360,7 +361,7 @@ export class Board {
     const { word, dir, x, y } = winner;
     const ltr = dir === 'ltr';
     const wordPos: Array<{ x: number; y: number; letter: string }> = [];
-    for (let index = 0, len = word.length; index < len; ++index) {
+    for (let index = 0, len = word.length; index < len; index++) {
       let c = word.charAt(index);
       if (ltr) {
         if (grid[y][x + index].isEmpty) wordPos.push({ y, x: x + index, letter: c });
@@ -403,9 +404,9 @@ export class Board {
 
   static createGrid<T>(callback: (y: number, x: number) => T): T[][] {
     const newGrid: T[][] = [];
-    for (let y = 0; y < 15; ++y) {
+    for (let y = 0; y < 15; y++) {
       newGrid[y] = [];
-      for (let x = 0; x < 15; ++x) {
+      for (let x = 0; x < 15; x++) {
         newGrid[y].push(callback(y, x));
       }
     }
@@ -414,7 +415,7 @@ export class Board {
 
   static copyOriginalGrid(grid: string[][]): string[][] {
     const newGrid: string[][] = [];
-    for (let y = 0; y < 15; ++y) newGrid[y] = grid[y].slice(0);
+    for (let y = 0; y < 15; y++) newGrid[y] = grid[y].slice(0);
     return newGrid;
   }
 
@@ -453,13 +454,13 @@ export class Board {
     });
 
     // Left and right
-    for (let y = 0; y < 15; ++y) {
+    for (let y = 0; y < 15; y++) {
       let leftX = 0;
-      for (let x = 0; x < 15; ++x) {
+      for (let x = 0; x < 15; x++) {
         if (enrichedGrid[y][x].isEmpty === false) continue;
 
         let currentX = x;
-        for (; x < 14 && enrichedGrid[y][x + 1].isEmpty === false; ++x);
+        for (; x < 14 && enrichedGrid[y][x + 1].isEmpty === false; x++);
 
         const hInfo = enrichedGrid[y][currentX];
         hInfo.left = grid[y].slice(leftX, currentX).join('').toUpperCase();
@@ -470,32 +471,32 @@ export class Board {
     }
 
     // Top and bottom
-    for (let x = 0; x < 15; ++x) {
+    for (let x = 0; x < 15; x++) {
       let topY = 0;
-      for (let y = 0; y < 15; ++y) {
+      for (let y = 0; y < 15; y++) {
         if (enrichedGrid[y][x].isEmpty === false) continue;
 
         let currentY = y;
-        for (; y < 14 && enrichedGrid[y + 1][x].isEmpty === false; ++y);
+        for (; y < 14 && enrichedGrid[y + 1][x].isEmpty === false; y++);
 
         const vInfo = enrichedGrid[currentY][x];
         vInfo.verticalScore = 0;
         vInfo.top = '';
-        for (let i = topY; i < currentY; ++i) {
+        for (let i = topY; i < currentY; i++) {
           vInfo.top += grid[i][x];
           vInfo.verticalScore += TILE_SCORE[grid[i][x]] || 0;
         }
         vInfo.top = vInfo.top.toUpperCase();
 
         vInfo.bottom = '';
-        for (let i = currentY + 1; i <= y; ++i) {
+        for (let i = currentY + 1; i <= y; i++) {
           vInfo.bottom += grid[i][x];
           vInfo.verticalScore += TILE_SCORE[grid[i][x]] || 0;
         }
         vInfo.bottom = vInfo.bottom.toUpperCase();
 
         vInfo.valid = false;
-        for (let i = 0; i < 26; ++i) {
+        for (let i = 0; i < 26; i++) {
           if (vInfo.top.length + vInfo.bottom.length === 0 || DB.has(vInfo.top + String.fromCharCode(i + 65) + vInfo.bottom)) { // 65 is the ASCII code of 'A'
             vInfo.validWordWith |= (1 << i);
             vInfo.valid = true;
@@ -537,7 +538,7 @@ export class Board {
     if (start.length !== 0 && !word.startsWith(start)) return false;
 
     const startLength = start.length;
-    for (let index = word.length - end.length - 1; index >= startLength; --index) {
+    for (let index = word.length - end.length - 1; index >= startLength; index--) {
       const tile = grid[y][x + index];
       if (tile.isEmpty) {
         // check validWordWith with one letter
@@ -553,7 +554,7 @@ export class Board {
     let verticalScore = 0;
     let horizontalScore = 0;
     let horizontalWordCoeff = 1;
-    for (let index = word.length - 1; index >= 0; --index) {
+    for (let index = word.length - 1; index >= 0; index--) {
       const currentC = word.charAt(index);
       const tile = grid[y][x + index];
       const tileScore = tile.bonus.letterCoeff * (TILE_SCORE[currentC] || 0);
@@ -570,10 +571,10 @@ export class Board {
 
   private calcBestScore(grid: GridTile[][], word: string, x: number, y: number, letterCnt: number, blanks: string): { score: number; word: string } {
     let best = { score: 0, pos: -1 };
-    for (let i = blanks.length - 1; i >= 0; --i) {
+    for (let i = blanks.length - 1; i >= 0; i--) {
       const char = blanks.charAt(i);
       best = { score: 0, pos: -1 };
-      for (let pos = word.length - 1; pos >= 0; --pos) {
+      for (let pos = word.length - 1; pos >= 0; pos--) {
         if (grid[y][x + pos].isEmpty && word.charAt(pos) === char) {
           const replacement = word.slice(0, pos) + char.toLowerCase() + word.slice(pos + 1);
           const score = this.calcScore(grid, replacement, x, y, letterCnt);
@@ -607,18 +608,16 @@ export class Board {
     // const end = nextTile.right.length;
     const wordX = x - tile.left.length;
 
-    for (let k = combi.length - 1; k >= 0; --k) {
+    for (let k = combi.length - 1; k >= 0; k--) {
       let [str, blanks] = combi[k];
-      if (!hValid) {
-        str = sortAsciiString(extraLetters, str);
-      }
+      if (!hValid) str = sortAsciiString(extraLetters, str);
 
       const words = WORDS_BY_SORTED_LETTERS.get(str);
       if (!words) continue;
 
       const hasBlank = blanks.length !== 0;
 
-      for (let l = words.length - 1; l >= 0; --l) {
+      for (let l = words.length - 1; l >= 0; l--) {
         let word = words[l];
 
         // if ((hValid || this.checkHorizontalWord(word, tile.left, nextTile.right, patternLetters)) &&
@@ -645,7 +644,7 @@ export class Board {
   public solve(letters: string): WordResult[] {
     const results: WordResult[] = [];
     const maxSpotCount = Math.min(letters.length, TILE_RACK_SIZE);
-    const allCombinations = new CombinationGenerator(letters, WORDS_BY_SORTED_LETTERS).generate();
+    const allCombinations = letterCombinations(letters, WORDS_BY_SORTED_LETTERS);
     this.solveHorizontal(results, allCombinations, maxSpotCount, false, false);
     this.solveHorizontal(results, allCombinations, maxSpotCount, true, false);
     return results;
@@ -653,10 +652,10 @@ export class Board {
 
   public isGameStuck(userLetters: string[]): boolean {
     const results: WordResult[] = [];
-    for (let i = userLetters.length - 1; i >= 0; --i) {
+    for (let i = userLetters.length - 1; i >= 0; i--) {
       const letters = userLetters[i];
       const maxSpotCount = Math.min(letters.length, TILE_RACK_SIZE);
-      const allCombinations = new CombinationGenerator(letters, WORDS_BY_SORTED_LETTERS).generate();
+      const allCombinations = letterCombinations(letters, WORDS_BY_SORTED_LETTERS);
       if (this.solveHorizontal(results, allCombinations, maxSpotCount, false, true) ||
         this.solveHorizontal(results, allCombinations, maxSpotCount, true, true)) return false;
     }
@@ -673,8 +672,8 @@ export class Board {
     const grid = inverted ? this.vGrid : this.hGrid;
     const firstTurn = grid[7][7].isEmpty;
 
-    for (let y = 0; y < 15; ++y) {
-      for (let x = 0; x < 15; ++x) {
+    for (let y = 0; y < 15; y++) {
+      for (let x = 0; x < 15; x++) {
         const tile = grid[y][x];
         if (tile.valid === false) continue;
 
@@ -683,7 +682,7 @@ export class Board {
         let extraLetters = tile.left;
         let validSpot = extraLetters.length !== 0;
 
-        for (let spotCount = 0; spotCount !== maxSpotCount; ++currentX) {
+        for (let spotCount = 0; spotCount !== maxSpotCount; currentX++) {
           if (currentX > 14) break;
 
           const nextTile = grid[y][currentX];
@@ -695,7 +694,7 @@ export class Board {
             continue;
           }
 
-          ++spotCount;
+          spotCount++;
 
           if (!validSpot) {
             if (firstTurn) {

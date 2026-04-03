@@ -1,7 +1,8 @@
 import { describe, it, expect } from 'vitest';
 import { Board } from './Board';
 import { HistoryEntry } from './HistoryEntry';
-import { range } from './utils';
+import { range } from './utils/range';
+
 
 
 describe('board.checkLetters', () => {

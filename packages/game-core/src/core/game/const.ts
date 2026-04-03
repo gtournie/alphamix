@@ -1,5 +1,5 @@
 import { Bonuses, LetterScore } from "./types";
-import { escapeRegexp } from "./utils";
+import { escapeRegexp } from "./utils/regex";
 
 export const TILE_RACK_SIZE = 7;
 

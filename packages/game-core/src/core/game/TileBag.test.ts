@@ -1,6 +1,5 @@
 import { describe, it, expect } from 'vitest';
 import { TileBag } from './TileBag';
-import { History } from './History';
 
 describe('new empty TileBag', () => {
   it('should create a random bag', () => {

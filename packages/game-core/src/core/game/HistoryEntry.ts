@@ -1,6 +1,6 @@
 import { HISTORY_DELIMITER_VALUES, HISTORY_DELIMITERS, HISTORY_ENTRY_DRAW_SEPARATOR, TILE_RACK_SIZE, HISTORY_ENTRY_CHARS_REG, HISTORY_ENTRY_DRAW_REG, TILE_BLANK } from "./const";
 import { HistorySymbol } from "./types";
-import { parseInt15 } from "./utils";
+import { parseInt15 } from "./utils/number";
 
 
 export class HistoryEntry {
