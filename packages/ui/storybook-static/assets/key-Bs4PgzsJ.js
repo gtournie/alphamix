@@ -1,0 +1,1 @@
+import{_ as t,a0 as c,az as i,K as y,an as f}from"./iframe-B6Xu6Fgz.js";const l=Symbol("NaN");function h(e,n,r){t&&c();var s=new f(e),o=!i();y(()=>{var a=n();a!==a&&(a=l),o&&a!==null&&typeof a=="object"&&(a={}),s.ensure(a,r)})}export{h as k};

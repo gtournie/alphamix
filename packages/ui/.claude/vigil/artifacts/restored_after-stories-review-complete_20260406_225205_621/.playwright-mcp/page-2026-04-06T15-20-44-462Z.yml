@@ -1,0 +1,608 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - banner [ref=e3]:
+      - generic [ref=e5]:
+        - link "shadcn/ui" [ref=e6] [cursor=pointer]:
+          - /url: /
+          - img
+          - generic [ref=e7]: shadcn/ui
+        - navigation [ref=e8]:
+          - link "Docs" [ref=e9] [cursor=pointer]:
+            - /url: /docs/installation
+          - link "Components" [ref=e10] [cursor=pointer]:
+            - /url: /docs/components
+          - link "Blocks" [ref=e11] [cursor=pointer]:
+            - /url: /blocks
+          - link "Charts" [ref=e12] [cursor=pointer]:
+            - /url: /charts/area
+          - link "Directory" [ref=e13] [cursor=pointer]:
+            - /url: /docs/directory
+          - link "Create" [ref=e14] [cursor=pointer]:
+            - /url: /create
+        - generic [ref=e15]:
+          - button "Search..." [ref=e17]:
+            - generic [ref=e18]: Search...
+          - link "112k" [ref=e19] [cursor=pointer]:
+            - /url: https://github.com/shadcn-ui/ui
+            - img
+            - generic [ref=e20]: 112k
+          - button "Toggle theme" [ref=e21]:
+            - img
+            - generic [ref=e22]: Toggle theme
+          - link "New" [ref=e24] [cursor=pointer]:
+            - /url: /create
+            - img
+            - text: New
+    - main [ref=e25]:
+      - generic [ref=e27]:
+        - generic [ref=e32]:
+          - generic [ref=e33]:
+            - generic [ref=e34]: Sections
+            - list [ref=e36]:
+              - listitem [ref=e37]:
+                - link "Introduction" [ref=e38] [cursor=pointer]:
+                  - /url: /docs
+                  - text: Introduction
+              - listitem [ref=e40]:
+                - link "Components" [ref=e41] [cursor=pointer]:
+                  - /url: /docs/components
+                  - text: Components
+              - listitem [ref=e43]:
+                - link "Installation" [ref=e44] [cursor=pointer]:
+                  - /url: /docs/installation
+                  - text: Installation
+              - listitem [ref=e46]:
+                - link "Theming" [ref=e47] [cursor=pointer]:
+                  - /url: /docs/theming
+                  - text: Theming
+              - listitem [ref=e49]:
+                - link "CLI New" [ref=e50] [cursor=pointer]:
+                  - /url: /docs/cli
+                  - text: CLI
+                  - generic "New" [ref=e52]
+              - listitem [ref=e53]:
+                - link "RTL" [ref=e54] [cursor=pointer]:
+                  - /url: /docs/rtl
+                  - text: RTL
+              - listitem [ref=e56]:
+                - link "Skills New" [ref=e57] [cursor=pointer]:
+                  - /url: /docs/skills
+                  - text: Skills
+                  - generic "New" [ref=e59]
+              - listitem [ref=e60]:
+                - link "MCP Server" [ref=e61] [cursor=pointer]:
+                  - /url: /docs/mcp
+                  - text: MCP Server
+              - listitem [ref=e63]:
+                - link "Registry" [ref=e64] [cursor=pointer]:
+                  - /url: /docs/registry
+                  - text: Registry
+              - listitem [ref=e66]:
+                - link "Forms" [ref=e67] [cursor=pointer]:
+                  - /url: /docs/forms
+                  - text: Forms
+              - listitem [ref=e69]:
+                - link "Changelog New" [ref=e70] [cursor=pointer]:
+                  - /url: /docs/changelog
+                  - text: Changelog
+                  - generic "New" [ref=e72]
+          - generic [ref=e73]:
+            - generic [ref=e74]: Components
+            - list [ref=e76]:
+              - listitem [ref=e77]:
+                - link "Accordion" [ref=e78] [cursor=pointer]:
+                  - /url: /docs/components/radix/accordion
+                  - text: Accordion
+              - listitem [ref=e80]:
+                - link "Alert" [ref=e81] [cursor=pointer]:
+                  - /url: /docs/components/radix/alert
+                  - text: Alert
+              - listitem [ref=e83]:
+                - link "Alert Dialog" [ref=e84] [cursor=pointer]:
+                  - /url: /docs/components/radix/alert-dialog
+                  - text: Alert Dialog
+              - listitem [ref=e86]:
+                - link "Aspect Ratio" [ref=e87] [cursor=pointer]:
+                  - /url: /docs/components/radix/aspect-ratio
+                  - text: Aspect Ratio
+              - listitem [ref=e89]:
+                - link "Avatar" [ref=e90] [cursor=pointer]:
+                  - /url: /docs/components/radix/avatar
+                  - text: Avatar
+              - listitem [ref=e92]:
+                - link "Badge" [ref=e93] [cursor=pointer]:
+                  - /url: /docs/components/radix/badge
+                  - text: Badge
+              - listitem [ref=e95]:
+                - link "Breadcrumb" [ref=e96] [cursor=pointer]:
+                  - /url: /docs/components/radix/breadcrumb
+                  - text: Breadcrumb
+              - listitem [ref=e98]:
+                - link "Button" [ref=e99] [cursor=pointer]:
+                  - /url: /docs/components/radix/button
+                  - text: Button
+              - listitem [ref=e101]:
+                - link "Button Group" [ref=e102] [cursor=pointer]:
+                  - /url: /docs/components/radix/button-group
+                  - text: Button Group
+              - listitem [ref=e104]:
+                - link "Calendar" [ref=e105] [cursor=pointer]:
+                  - /url: /docs/components/radix/calendar
+                  - text: Calendar
+              - listitem [ref=e107]:
+                - link "Card" [ref=e108] [cursor=pointer]:
+                  - /url: /docs/components/radix/card
+                  - text: Card
+              - listitem [ref=e110]:
+                - link "Carousel" [ref=e111] [cursor=pointer]:
+                  - /url: /docs/components/radix/carousel
+                  - text: Carousel
+              - listitem [ref=e113]:
+                - link "Chart" [ref=e114] [cursor=pointer]:
+                  - /url: /docs/components/radix/chart
+                  - text: Chart
+              - listitem [ref=e116]:
+                - link "Checkbox" [ref=e117] [cursor=pointer]:
+                  - /url: /docs/components/radix/checkbox
+                  - text: Checkbox
+              - listitem [ref=e119]:
+                - link "Collapsible" [ref=e120] [cursor=pointer]:
+                  - /url: /docs/components/radix/collapsible
+                  - text: Collapsible
+              - listitem [ref=e122]:
+                - link "Combobox" [ref=e123] [cursor=pointer]:
+                  - /url: /docs/components/radix/combobox
+                  - text: Combobox
+              - listitem [ref=e125]:
+                - link "Command" [ref=e126] [cursor=pointer]:
+                  - /url: /docs/components/radix/command
+                  - text: Command
+              - listitem [ref=e128]:
+                - link "Context Menu" [ref=e129] [cursor=pointer]:
+                  - /url: /docs/components/radix/context-menu
+                  - text: Context Menu
+              - listitem [ref=e131]:
+                - link "Data Table" [ref=e132] [cursor=pointer]:
+                  - /url: /docs/components/radix/data-table
+                  - text: Data Table
+              - listitem [ref=e134]:
+                - link "Date Picker" [ref=e135] [cursor=pointer]:
+                  - /url: /docs/components/radix/date-picker
+                  - text: Date Picker
+              - listitem [ref=e137]:
+                - link "Dialog" [ref=e138] [cursor=pointer]:
+                  - /url: /docs/components/radix/dialog
+                  - text: Dialog
+              - listitem [ref=e140]:
+                - link "Direction" [ref=e141] [cursor=pointer]:
+                  - /url: /docs/components/radix/direction
+                  - text: Direction
+              - listitem [ref=e143]:
+                - link "Drawer" [ref=e144] [cursor=pointer]:
+                  - /url: /docs/components/radix/drawer
+                  - text: Drawer
+              - listitem [ref=e146]:
+                - link "Dropdown Menu" [ref=e147] [cursor=pointer]:
+                  - /url: /docs/components/radix/dropdown-menu
+                  - text: Dropdown Menu
+              - listitem [ref=e149]:
+                - link "Empty" [ref=e150] [cursor=pointer]:
+                  - /url: /docs/components/radix/empty
+                  - text: Empty
+              - listitem [ref=e152]:
+                - link "Field" [ref=e153] [cursor=pointer]:
+                  - /url: /docs/components/radix/field
+                  - text: Field
+              - listitem [ref=e155]:
+                - link "Hover Card" [ref=e156] [cursor=pointer]:
+                  - /url: /docs/components/radix/hover-card
+                  - text: Hover Card
+              - listitem [ref=e158]:
+                - link "Input" [ref=e159] [cursor=pointer]:
+                  - /url: /docs/components/radix/input
+                  - text: Input
+              - listitem [ref=e161]:
+                - link "Input Group" [ref=e162] [cursor=pointer]:
+                  - /url: /docs/components/radix/input-group
+                  - text: Input Group
+              - listitem [ref=e164]:
+                - link "Input OTP" [ref=e165] [cursor=pointer]:
+                  - /url: /docs/components/radix/input-otp
+                  - text: Input OTP
+              - listitem [ref=e167]:
+                - link "Item" [ref=e168] [cursor=pointer]:
+                  - /url: /docs/components/radix/item
+                  - text: Item
+              - listitem [ref=e170]:
+                - link "Kbd" [ref=e171] [cursor=pointer]:
+                  - /url: /docs/components/radix/kbd
+                  - text: Kbd
+              - listitem [ref=e173]:
+                - link "Label" [ref=e174] [cursor=pointer]:
+                  - /url: /docs/components/radix/label
+                  - text: Label
+              - listitem [ref=e176]:
+                - link "Menubar" [ref=e177] [cursor=pointer]:
+                  - /url: /docs/components/radix/menubar
+                  - text: Menubar
+              - listitem [ref=e179]:
+                - link "Native Select" [ref=e180] [cursor=pointer]:
+                  - /url: /docs/components/radix/native-select
+                  - text: Native Select
+              - listitem [ref=e182]:
+                - link "Navigation Menu" [ref=e183] [cursor=pointer]:
+                  - /url: /docs/components/radix/navigation-menu
+                  - text: Navigation Menu
+              - listitem [ref=e185]:
+                - link "Pagination" [ref=e186] [cursor=pointer]:
+                  - /url: /docs/components/radix/pagination
+                  - text: Pagination
+              - listitem [ref=e188]:
+                - link "Popover" [ref=e189] [cursor=pointer]:
+                  - /url: /docs/components/radix/popover
+                  - text: Popover
+              - listitem [ref=e191]:
+                - link "Progress" [ref=e192] [cursor=pointer]:
+                  - /url: /docs/components/radix/progress
+                  - text: Progress
+              - listitem [ref=e194]:
+                - link "Radio Group" [ref=e195] [cursor=pointer]:
+                  - /url: /docs/components/radix/radio-group
+                  - text: Radio Group
+              - listitem [ref=e197]:
+                - link "Resizable" [ref=e198] [cursor=pointer]:
+                  - /url: /docs/components/radix/resizable
+                  - text: Resizable
+              - listitem [ref=e200]:
+                - link "Scroll Area" [ref=e201] [cursor=pointer]:
+                  - /url: /docs/components/radix/scroll-area
+                  - text: Scroll Area
+              - listitem [ref=e203]:
+                - link "Select" [ref=e204] [cursor=pointer]:
+                  - /url: /docs/components/radix/select
+                  - text: Select
+              - listitem [ref=e206]:
+                - link "Separator" [ref=e207] [cursor=pointer]:
+                  - /url: /docs/components/radix/separator
+                  - text: Separator
+              - listitem [ref=e209]:
+                - link "Sheet" [ref=e210] [cursor=pointer]:
+                  - /url: /docs/components/radix/sheet
+                  - text: Sheet
+              - listitem [ref=e212]:
+                - link "Sidebar" [ref=e213] [cursor=pointer]:
+                  - /url: /docs/components/radix/sidebar
+                  - text: Sidebar
+              - listitem [ref=e215]:
+                - link "Skeleton" [ref=e216] [cursor=pointer]:
+                  - /url: /docs/components/radix/skeleton
+                  - text: Skeleton
+              - listitem [ref=e218]:
+                - link "Slider" [ref=e219] [cursor=pointer]:
+                  - /url: /docs/components/radix/slider
+                  - text: Slider
+              - listitem [ref=e221]:
+                - link "Sonner" [ref=e222] [cursor=pointer]:
+                  - /url: /docs/components/radix/sonner
+                  - text: Sonner
+              - listitem [ref=e224]:
+                - link "Spinner" [ref=e225] [cursor=pointer]:
+                  - /url: /docs/components/radix/spinner
+                  - text: Spinner
+              - listitem [ref=e227]:
+                - link "Switch" [ref=e228] [cursor=pointer]:
+                  - /url: /docs/components/radix/switch
+                  - text: Switch
+              - listitem [ref=e230]:
+                - link "Table" [ref=e231] [cursor=pointer]:
+                  - /url: /docs/components/radix/table
+                  - text: Table
+              - listitem [ref=e233]:
+                - link "Tabs" [ref=e234] [cursor=pointer]:
+                  - /url: /docs/components/radix/tabs
+                  - text: Tabs
+              - listitem [ref=e236]:
+                - link "Textarea" [ref=e237] [cursor=pointer]:
+                  - /url: /docs/components/radix/textarea
+                  - text: Textarea
+              - listitem [ref=e239]:
+                - link "Toast" [ref=e240] [cursor=pointer]:
+                  - /url: /docs/components/radix/toast
+                  - text: Toast
+              - listitem [ref=e242]:
+                - link "Toggle" [ref=e243] [cursor=pointer]:
+                  - /url: /docs/components/radix/toggle
+                  - text: Toggle
+              - listitem [ref=e245]:
+                - link "Toggle Group" [ref=e246] [cursor=pointer]:
+                  - /url: /docs/components/radix/toggle-group
+                  - text: Toggle Group
+              - listitem [ref=e248]:
+                - link "Tooltip" [ref=e249] [cursor=pointer]:
+                  - /url: /docs/components/radix/tooltip
+                  - text: Tooltip
+              - listitem [ref=e251]:
+                - link "Typography" [ref=e252] [cursor=pointer]:
+                  - /url: /docs/components/radix/typography
+                  - text: Typography
+          - generic [ref=e254]:
+            - generic [ref=e255]: Get Started
+            - list [ref=e257]:
+              - listitem [ref=e258]:
+                - link "Installation" [ref=e259] [cursor=pointer]:
+                  - /url: /docs/installation
+                  - text: Installation
+              - listitem [ref=e261]:
+                - link "components.json" [ref=e262] [cursor=pointer]:
+                  - /url: /docs/components-json
+                  - text: components.json
+              - listitem [ref=e264]:
+                - link "Theming" [ref=e265] [cursor=pointer]:
+                  - /url: /docs/theming
+                  - text: Theming
+              - listitem [ref=e267]:
+                - link "Dark Mode" [ref=e268] [cursor=pointer]:
+                  - /url: /docs/dark-mode
+                  - text: Dark Mode
+              - listitem [ref=e270]:
+                - link "CLI New" [ref=e271] [cursor=pointer]:
+                  - /url: /docs/cli
+                  - text: CLI
+                  - generic "New" [ref=e273]
+              - listitem [ref=e274]:
+                - link "Monorepo" [ref=e275] [cursor=pointer]:
+                  - /url: /docs/monorepo
+                  - text: Monorepo
+              - listitem [ref=e277]:
+                - link "Skills New" [ref=e278] [cursor=pointer]:
+                  - /url: /docs/skills
+                  - text: Skills
+                  - generic "New" [ref=e280]
+              - listitem [ref=e281]:
+                - link "Open in v0" [ref=e282] [cursor=pointer]:
+                  - /url: /docs/v0
+                  - text: Open in v0
+              - listitem [ref=e284]:
+                - link "JavaScript" [ref=e285] [cursor=pointer]:
+                  - /url: /docs/javascript
+                  - text: JavaScript
+              - listitem [ref=e287]:
+                - link "Figma" [ref=e288] [cursor=pointer]:
+                  - /url: /docs/figma
+                  - text: Figma
+              - listitem [ref=e290]:
+                - link "llms.txt" [ref=e291] [cursor=pointer]:
+                  - /url: /llms.txt
+                  - text: llms.txt
+              - listitem [ref=e293]:
+                - link "Legacy Docs" [ref=e294] [cursor=pointer]:
+                  - /url: /docs/legacy
+                  - text: Legacy Docs
+          - generic [ref=e296]:
+            - generic [ref=e297]: Forms
+            - list [ref=e299]:
+              - listitem [ref=e300]:
+                - link "React Hook Form" [ref=e301] [cursor=pointer]:
+                  - /url: /docs/forms/react-hook-form
+                  - text: React Hook Form
+              - listitem [ref=e303]:
+                - link "TanStack Form" [ref=e304] [cursor=pointer]:
+                  - /url: /docs/forms/tanstack-form
+                  - text: TanStack Form
+          - generic [ref=e306]:
+            - generic [ref=e307]: Registry
+            - list [ref=e309]:
+              - listitem [ref=e310]:
+                - link "Introduction" [ref=e311] [cursor=pointer]:
+                  - /url: /docs/registry
+                  - text: Introduction
+              - listitem [ref=e313]:
+                - link "Getting Started" [ref=e314] [cursor=pointer]:
+                  - /url: /docs/registry/getting-started
+                  - text: Getting Started
+              - listitem [ref=e316]:
+                - link "Namespaces" [ref=e317] [cursor=pointer]:
+                  - /url: /docs/registry/namespace
+                  - text: Namespaces
+              - listitem [ref=e319]:
+                - link "Authentication" [ref=e320] [cursor=pointer]:
+                  - /url: /docs/registry/authentication
+                  - text: Authentication
+              - listitem [ref=e322]:
+                - link "Examples" [ref=e323] [cursor=pointer]:
+                  - /url: /docs/registry/examples
+                  - text: Examples
+              - listitem [ref=e325]:
+                - link "MCP Server" [ref=e326] [cursor=pointer]:
+                  - /url: /docs/registry/mcp
+                  - text: MCP Server
+              - listitem [ref=e328]:
+                - link "Add a Registry" [ref=e329] [cursor=pointer]:
+                  - /url: /docs/registry/registry-index
+                  - text: Add a Registry
+              - listitem [ref=e331]:
+                - link "Open in v0" [ref=e332] [cursor=pointer]:
+                  - /url: /docs/registry/open-in-v0
+                  - text: Open in v0
+              - listitem [ref=e334]:
+                - link "registry.json" [ref=e335] [cursor=pointer]:
+                  - /url: /docs/registry/registry-json
+                  - text: registry.json
+              - listitem [ref=e337]:
+                - link "registry-item.json" [ref=e338] [cursor=pointer]:
+                  - /url: /docs/registry/registry-item-json
+                  - text: registry-item.json
+        - generic [ref=e345]:
+          - generic [ref=e347]:
+            - generic [ref=e348]:
+              - heading "Sheet" [level=1] [ref=e349]
+              - generic [ref=e350]:
+                - generic [ref=e352]:
+                  - button "Copy Page" [ref=e353]:
+                    - img
+                    - text: Copy Page
+                  - button [ref=e354]:
+                    - img
+                - generic [ref=e355]:
+                  - link "Previous" [ref=e356] [cursor=pointer]:
+                    - /url: /docs/components/radix/separator
+                    - img
+                    - generic [ref=e357]: Previous
+                  - link "Next" [ref=e358] [cursor=pointer]:
+                    - /url: /docs/components/radix/sidebar
+                    - generic [ref=e359]: Next
+                    - img
+            - paragraph [ref=e360]: Extends the Dialog component to display content that complements the main content of the screen.
+          - generic [ref=e361]:
+            - generic [ref=e362]:
+              - link "Radix UI" [ref=e363] [cursor=pointer]:
+                - /url: /docs/components/radix/sheet
+              - link "Base UI" [ref=e364] [cursor=pointer]:
+                - /url: /docs/components/base/sheet
+              - img "Radix UI" [ref=e366]
+            - generic [ref=e368]:
+              - button "Open" [ref=e371]
+              - generic [ref=e373]:
+                - figure [ref=e375]:
+                  - code [ref=e378]:
+                    - generic [ref=e379]: "import { Button } from \"@/components/ui/button\""
+                    - generic [ref=e380]: "import { Input } from \"@/components/ui/input\""
+                    - generic [ref=e381]: "import { Label } from \"@/components/ui/label\""
+                - button "View Code" [ref=e384]
+            - heading "Installation" [level=2] [ref=e385]
+            - generic [ref=e386]:
+              - tablist [ref=e387]:
+                - tab "Command" [selected] [ref=e388]
+                - tab "Manual" [ref=e389]
+              - tabpanel "Command" [ref=e390]:
+                - figure [ref=e391]:
+                  - generic [ref=e393]:
+                    - generic [ref=e394]:
+                      - generic [ref=e395]:
+                        - img [ref=e397]
+                        - tablist [ref=e399]:
+                          - tab "pnpm" [selected] [ref=e400]
+                          - tab "npm" [ref=e401]
+                          - tab "yarn" [ref=e402]
+                          - tab "bun" [ref=e403]
+                      - tabpanel "pnpm" [ref=e405]:
+                        - code [ref=e407]: pnpm dlx shadcn@latest add sheet
+                    - button "Copy" [ref=e408]:
+                      - generic [ref=e409]: Copy
+                      - img
+            - heading "Usage" [level=2] [ref=e410]
+            - figure [ref=e411]:
+              - generic [ref=e412]:
+                - button "Copy" [ref=e413]:
+                  - generic [ref=e414]: Copy
+                  - img
+                - code [ref=e415]:
+                  - generic [ref=e416]: "import {"
+                  - generic [ref=e417]: Sheet,
+                  - generic [ref=e418]: SheetClose,
+                  - generic [ref=e419]: SheetContent,
+                  - generic [ref=e420]: SheetDescription,
+                  - generic [ref=e421]: SheetFooter,
+                  - generic [ref=e422]: SheetHeader,
+                  - generic [ref=e423]: SheetTitle,
+                  - generic [ref=e424]: SheetTrigger,
+                  - generic [ref=e425]: "} from \"@/components/ui/sheet\""
+            - figure [ref=e426]:
+              - generic [ref=e427]:
+                - button "Copy" [ref=e428]:
+                  - generic [ref=e429]: Copy
+                  - img
+                - code [ref=e430]:
+                  - generic [ref=e431]: <Sheet>
+                  - generic [ref=e432]: <SheetTrigger>Open</SheetTrigger>
+                  - generic [ref=e433]: <SheetContent>
+                  - generic [ref=e434]: <SheetHeader>
+                  - generic [ref=e435]: <SheetTitle>Are you absolutely sure?</SheetTitle>
+                  - generic [ref=e436]: <SheetDescription>This action cannot be undone.</SheetDescription>
+                  - generic [ref=e437]: </SheetHeader>
+                  - generic [ref=e438]: </SheetContent>
+                  - generic [ref=e439]: </Sheet>
+            - heading "Examples" [level=2] [ref=e440]
+            - heading "Side" [level=3] [ref=e441]
+            - paragraph [ref=e442]:
+              - text: Use the
+              - code [ref=e443]: side
+              - text: prop on
+              - code [ref=e444]: SheetContent
+              - text: to set the edge of the screen where the sheet appears. Values are
+              - code [ref=e445]: top
+              - text: ","
+              - code [ref=e446]: right
+              - text: ","
+              - code [ref=e447]: bottom
+              - text: ", or"
+              - code [ref=e448]: left
+              - text: .
+            - generic [ref=e449]:
+              - generic [ref=e452]:
+                - button "top" [ref=e453]
+                - button "right" [ref=e454]
+                - button "bottom" [ref=e455]
+                - button "left" [ref=e456]
+              - generic [ref=e458]:
+                - figure [ref=e460]:
+                  - code [ref=e463]:
+                    - generic [ref=e464]: "import { Button } from \"@/components/ui/button\""
+                    - generic [ref=e465]: "import {"
+                    - generic [ref=e466]: Sheet,
+                - button "View Code" [ref=e469]
+            - heading "No Close Button" [level=3] [ref=e470]
+            - paragraph [ref=e471]:
+              - text: Use
+              - code [ref=e472]: "showCloseButton={false}"
+              - text: "on"
+              - code [ref=e473]: SheetContent
+              - text: to hide the close button.
+            - generic [ref=e474]:
+              - button "Open Sheet" [ref=e477]
+              - generic [ref=e479]:
+                - figure [ref=e481]:
+                  - code [ref=e484]:
+                    - generic [ref=e485]: "import { Button } from \"@/components/ui/button\""
+                    - generic [ref=e486]: "import {"
+                    - generic [ref=e487]: Sheet,
+                - button "View Code" [ref=e490]
+            - heading "RTL" [level=2] [ref=e491]
+            - paragraph [ref=e492]:
+              - text: To enable RTL support in shadcn/ui, see the
+              - link "RTL configuration guide" [ref=e493] [cursor=pointer]:
+                - /url: /docs/rtl
+              - text: .
+            - generic [ref=e494]:
+              - generic [ref=e495]:
+                - combobox [ref=e496]:
+                  - generic [ref=e497]: Arabic (العربية)
+                  - img: ▼
+                - textbox [ref=e498]: ar
+                - button "Toggle" [ref=e499]:
+                  - img
+                  - generic [ref=e500]: Toggle
+              - button "فتح" [ref=e503]
+              - generic [ref=e505]:
+                - figure [ref=e507]:
+                  - code [ref=e510]:
+                    - generic [ref=e511]: "\"use client\""
+                    - generic [ref=e513]: "import {"
+                - button "View Code" [ref=e516]
+            - heading "API Reference" [level=2] [ref=e517]
+            - paragraph [ref=e518]:
+              - text: See the
+              - link "Radix UI Dialog" [ref=e519] [cursor=pointer]:
+                - /url: https://www.radix-ui.com/docs/primitives/components/dialog#api-reference
+              - text: documentation.
+          - generic [ref=e520]:
+            - link "Separator" [ref=e521] [cursor=pointer]:
+              - /url: /docs/components/radix/separator
+              - img
+              - text: Separator
+            - link "Sidebar" [ref=e522] [cursor=pointer]:
+              - /url: /docs/components/radix/sidebar
+              - text: Sidebar
+              - img
+  - region "Notifications alt+T"
+  - alert [ref=e523]

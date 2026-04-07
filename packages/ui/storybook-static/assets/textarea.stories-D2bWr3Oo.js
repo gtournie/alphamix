@@ -1,0 +1,22 @@
+import{p as I,f as _,a as F,s as t,b as s,c as M,t as x,g as $,e as n,r as h}from"./iframe-B6Xu6Fgz.js";import{c as z,d as E}from"./create-runtime-stories-BluNYEpp.js";import{T as d}from"./textarea-slF0AiTm.js";import{L}from"./label-C5okEdJd.js";import{B as R}from"./button-D1TQAHUS.js";import{F as q,a as S}from"./field-description--z4BXJ6q.js";import{i as O}from"./lifecycle-CZCTT3tj.js";import"./separator-ugExfeGY.js";import"./preload-helper-Dp1pzeXC.js";import"./attributes-C6SbQsrD.js";import"./input-CIAyiIlm.js";import"./this-BWUIJTEM.js";import"./utils-DuQb-ZiT.js";import"./create-id-8ROD_mwL.js";import"./index-257lgZP2.js";import"./index-BWQi_4Ky.js";const U={title:"UI/Textarea",component:d,tags:["autodocs"],argTypes:{disabled:{control:"boolean"},placeholder:{control:"text"},rows:{control:"number"}}},{Story:c}=E();var j=_('<div class="flex flex-col gap-1.5 max-w-xs"><!> <!></div>'),k=_("<!> <!> <!>",1),A=_('<div class="flex flex-col gap-1.5 max-w-xs"><!> <!> <p id="invalid-textarea-error" class="text-destructive text-xs">Ce champ est requis.</p></div>'),G=_('<div class="flex flex-col gap-2 max-w-xs"><!> <!></div>'),H=_("<!> <!> <!> <!> <!> <!>",1);function T(D,P){I(P,!1),O();var g=H(),b=F(g);c(b,{name:"Basic",template:a=>{d(a,{class:"max-w-xs",placeholder:"Écrivez votre message…"})},$$slots:{template:!0},parameters:{__svelteCsf:{rawCode:'<Textarea class="max-w-xs" placeholder="Écrivez votre message…" />'}}});var w=t(b,2);c(w,{name:"WithLabel",template:a=>{var e=j(),r=$(e);L(r,{for:"message",children:(o,p)=>{n();var i=x("Message");s(o,i)},$$slots:{default:!0}});var l=t(r,2);d(l,{id:"message",placeholder:"Votre message…"}),h(e),s(a,e)},$$slots:{template:!0},parameters:{__svelteCsf:{rawCode:`<div class="flex flex-col gap-1.5 max-w-xs">
+	<Label for="message">Message</Label>
+	<Textarea id="message" placeholder="Votre message…" />
+</div>`}}});var B=t(w,2);c(B,{name:"WithField",template:a=>{(void 0)(a,{class:"max-w-xs",children:(e,r)=>{var l=k(),o=F(l);q(o,{children:(f,y)=>{n();var u=x("Bio");s(f,u)},$$slots:{default:!0}});var p=t(o,2);d(p,{placeholder:"Parlez-nous de vous…"});var i=t(p,2);S(i,{children:(f,y)=>{n();var u=x("Visible sur votre profil public.");s(f,u)},$$slots:{default:!0}}),s(e,l)},$$slots:{default:!0}})},$$slots:{template:!0},parameters:{__svelteCsf:{rawCode:`<Field.Root class="max-w-xs">
+	<Field.Label>Bio</Field.Label>
+	<Textarea placeholder="Parlez-nous de vous…" />
+	<Field.Description>Visible sur votre profil public.</Field.Description>
+</Field.Root>`}}});var W=t(B,2);c(W,{name:"Disabled",template:a=>{d(a,{class:"max-w-xs",placeholder:"Désactivé…",disabled:!0})},$$slots:{template:!0},parameters:{__svelteCsf:{rawCode:'<Textarea class="max-w-xs" placeholder="Désactivé…" disabled />'}}});var C=t(W,2);c(C,{name:"Invalid",template:a=>{var e=A(),r=$(e);L(r,{for:"invalid-textarea",children:(o,p)=>{n();var i=x("Message");s(o,i)},$$slots:{default:!0}});var l=t(r,2);d(l,{id:"invalid-textarea",placeholder:"Votre message…","aria-invalid":"true","aria-describedby":"invalid-textarea-error"}),n(2),h(e),s(a,e)},$$slots:{template:!0},parameters:{__svelteCsf:{rawCode:`<div class="flex flex-col gap-1.5 max-w-xs">
+	<Label for="invalid-textarea">Message</Label>
+	<Textarea
+		id="invalid-textarea"
+		placeholder="Votre message…"
+		aria-invalid="true"
+		aria-describedby="invalid-textarea-error"
+	/>
+	<p id="invalid-textarea-error" class="text-destructive text-xs">
+		Ce champ est requis.
+	</p>
+</div>`}}});var V=t(C,2);c(V,{name:"WithButton",template:a=>{var e=G(),r=$(e);d(r,{placeholder:"Votre message…"});var l=t(r,2);R(l,{class:"self-end",children:(o,p)=>{n();var i=x("Envoyer");s(o,i)},$$slots:{default:!0}}),h(e),s(a,e)},$$slots:{template:!0},parameters:{__svelteCsf:{rawCode:`<div class="flex flex-col gap-2 max-w-xs">
+	<Textarea placeholder="Votre message…" />
+	<Button class="self-end">Envoyer</Button>
+</div>`}}}),s(D,g),M()}T.__docgen={data:[],name:"textarea.stories.svelte"};const v=z(T,U),ne=["Basic","WithLabel","WithField","Disabled","Invalid","WithButton"],ce={...v.Basic,tags:["svelte-csf-v5"]},ve={...v.WithLabel,tags:["svelte-csf-v5"]},me={...v.WithField,tags:["svelte-csf-v5"]},pe={...v.Disabled,tags:["svelte-csf-v5"]},xe={...v.Invalid,tags:["svelte-csf-v5"]},_e={...v.WithButton,tags:["svelte-csf-v5"]};export{ce as Basic,pe as Disabled,xe as Invalid,_e as WithButton,me as WithField,ve as WithLabel,ne as __namedExportsOrder,U as default};

@@ -1,0 +1,6 @@
+# Auto-detected by vigil — edit to adjust what gets checkpointed
+
+# Common build artifacts (detected by vigil)
+node_modules/
+
+# Add project-specific patterns below

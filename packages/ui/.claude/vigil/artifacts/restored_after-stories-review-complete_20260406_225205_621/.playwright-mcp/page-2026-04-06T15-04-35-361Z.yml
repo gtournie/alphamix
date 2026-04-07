@@ -1,0 +1,633 @@
+- generic [ref=e2]:
+  - region "Notifications alt+T"
+  - generic [ref=e4]:
+    - banner [ref=e5]:
+      - generic [ref=e7]:
+        - link "shadcn-svelte" [ref=e8] [cursor=pointer]:
+          - /url: /
+          - img
+          - generic [ref=e9]: shadcn-svelte
+        - navigation [ref=e10]:
+          - link "Docs" [ref=e11] [cursor=pointer]:
+            - /url: /docs/installation
+          - link "Components" [ref=e12] [cursor=pointer]:
+            - /url: /docs/components
+          - link "Blocks" [ref=e13] [cursor=pointer]:
+            - /url: /blocks
+          - link "Charts" [ref=e14] [cursor=pointer]:
+            - /url: /charts/area
+          - link "Colors" [ref=e15] [cursor=pointer]:
+            - /url: /colors
+          - link "Create" [ref=e16] [cursor=pointer]:
+            - /url: /create
+        - generic [ref=e17]:
+          - button "Search documentation... ⌘ K" [ref=e19]:
+            - generic [ref=e20]: Search documentation...
+            - generic [ref=e22]:
+              - generic: ⌘
+              - generic: K
+          - separator [ref=e23]
+          - link "8.6k" [ref=e24] [cursor=pointer]:
+            - /url: https://github.com/huntabyte/shadcn-svelte
+            - img
+            - generic [ref=e25]: 8.6k
+          - separator [ref=e26]
+          - button [ref=e27]:
+            - img
+          - link "New Project" [ref=e28] [cursor=pointer]:
+            - /url: /create
+            - img
+            - text: New Project
+    - main [ref=e29]:
+      - generic [ref=e31]:
+        - generic [ref=e33]:
+          - generic [ref=e35]:
+            - generic [ref=e36]: Sections
+            - list [ref=e38]:
+              - listitem [ref=e39]:
+                - link "Get Started" [ref=e40] [cursor=pointer]:
+                  - /url: /docs
+                  - text: Get Started
+              - listitem [ref=e42]:
+                - link "Components" [ref=e43] [cursor=pointer]:
+                  - /url: /docs/components
+                  - text: Components
+              - listitem [ref=e45]:
+                - link "Changelog" [ref=e46] [cursor=pointer]:
+                  - /url: /docs/changelog
+                  - text: Changelog
+          - generic [ref=e48]:
+            - generic [ref=e49]: Get Started
+            - list [ref=e51]:
+              - listitem [ref=e52]:
+                - link "Installation" [ref=e53] [cursor=pointer]:
+                  - /url: /docs/installation
+                  - text: Installation
+              - listitem [ref=e55]:
+                - link "components.json" [ref=e56] [cursor=pointer]:
+                  - /url: /docs/components-json
+                  - text: components.json
+              - listitem [ref=e58]:
+                - link "Theming" [ref=e59] [cursor=pointer]:
+                  - /url: /docs/theming
+                  - text: Theming
+              - listitem [ref=e61]:
+                - link "Dark Mode" [ref=e62] [cursor=pointer]:
+                  - /url: /docs/dark-mode
+                  - text: Dark Mode
+              - listitem [ref=e64]:
+                - link "CLI" [ref=e65] [cursor=pointer]:
+                  - /url: /docs/cli
+                  - text: CLI
+              - listitem [ref=e67]:
+                - link "JavaScript" [ref=e68] [cursor=pointer]:
+                  - /url: /docs/javascript
+                  - text: JavaScript
+              - listitem [ref=e70]:
+                - link "Figma" [ref=e71] [cursor=pointer]:
+                  - /url: /docs/figma
+                  - text: Figma
+              - listitem [ref=e73]:
+                - link "llms.txt" [ref=e74] [cursor=pointer]:
+                  - /url: /llms.txt
+                  - text: llms.txt
+              - listitem [ref=e76]:
+                - link "Legacy Docs" [ref=e77] [cursor=pointer]:
+                  - /url: /docs/legacy
+                  - text: Legacy Docs
+          - generic [ref=e79]:
+            - generic [ref=e80]: Migration
+            - list [ref=e82]:
+              - listitem [ref=e83]:
+                - link "Svelte 5" [ref=e84] [cursor=pointer]:
+                  - /url: /docs/migration/svelte-5
+                  - text: Svelte 5
+              - listitem [ref=e86]:
+                - link "Tailwind v4" [ref=e87] [cursor=pointer]:
+                  - /url: /docs/migration/tailwind-v4
+                  - text: Tailwind v4
+          - generic [ref=e89]:
+            - generic [ref=e90]: Components
+            - list [ref=e92]:
+              - listitem [ref=e93]:
+                - link "Accordion" [ref=e94] [cursor=pointer]:
+                  - /url: /docs/components/accordion
+                  - text: Accordion
+              - listitem [ref=e96]:
+                - link "Alert Dialog" [ref=e97] [cursor=pointer]:
+                  - /url: /docs/components/alert-dialog
+                  - text: Alert Dialog
+              - listitem [ref=e99]:
+                - link "Alert" [ref=e100] [cursor=pointer]:
+                  - /url: /docs/components/alert
+                  - text: Alert
+              - listitem [ref=e102]:
+                - link "Aspect Ratio" [ref=e103] [cursor=pointer]:
+                  - /url: /docs/components/aspect-ratio
+                  - text: Aspect Ratio
+              - listitem [ref=e105]:
+                - link "Avatar" [ref=e106] [cursor=pointer]:
+                  - /url: /docs/components/avatar
+                  - text: Avatar
+              - listitem [ref=e108]:
+                - link "Badge" [ref=e109] [cursor=pointer]:
+                  - /url: /docs/components/badge
+                  - text: Badge
+              - listitem [ref=e111]:
+                - link "Breadcrumb" [ref=e112] [cursor=pointer]:
+                  - /url: /docs/components/breadcrumb
+                  - text: Breadcrumb
+              - listitem [ref=e114]:
+                - link "Button Group New" [ref=e115] [cursor=pointer]:
+                  - /url: /docs/components/button-group
+                  - text: Button Group
+                  - generic "New" [ref=e117]
+              - listitem [ref=e118]:
+                - link "Button" [ref=e119] [cursor=pointer]:
+                  - /url: /docs/components/button
+                  - text: Button
+              - listitem [ref=e121]:
+                - link "Calendar" [ref=e122] [cursor=pointer]:
+                  - /url: /docs/components/calendar
+                  - text: Calendar
+              - listitem [ref=e124]:
+                - link "Card" [ref=e125] [cursor=pointer]:
+                  - /url: /docs/components/card
+                  - text: Card
+              - listitem [ref=e127]:
+                - link "Carousel" [ref=e128] [cursor=pointer]:
+                  - /url: /docs/components/carousel
+                  - text: Carousel
+              - listitem [ref=e130]:
+                - link "Chart" [ref=e131] [cursor=pointer]:
+                  - /url: /docs/components/chart
+                  - text: Chart
+              - listitem [ref=e133]:
+                - link "Checkbox" [ref=e134] [cursor=pointer]:
+                  - /url: /docs/components/checkbox
+                  - text: Checkbox
+              - listitem [ref=e136]:
+                - link "Collapsible" [ref=e137] [cursor=pointer]:
+                  - /url: /docs/components/collapsible
+                  - text: Collapsible
+              - listitem [ref=e139]:
+                - link "Combobox" [ref=e140] [cursor=pointer]:
+                  - /url: /docs/components/combobox
+                  - text: Combobox
+              - listitem [ref=e142]:
+                - link "Command" [ref=e143] [cursor=pointer]:
+                  - /url: /docs/components/command
+                  - text: Command
+              - listitem [ref=e145]:
+                - link "Context Menu" [ref=e146] [cursor=pointer]:
+                  - /url: /docs/components/context-menu
+                  - text: Context Menu
+              - listitem [ref=e148]:
+                - link "Data Table" [ref=e149] [cursor=pointer]:
+                  - /url: /docs/components/data-table
+                  - text: Data Table
+              - listitem [ref=e151]:
+                - link "Date Picker" [ref=e152] [cursor=pointer]:
+                  - /url: /docs/components/date-picker
+                  - text: Date Picker
+              - listitem [ref=e154]:
+                - link "Dialog" [ref=e155] [cursor=pointer]:
+                  - /url: /docs/components/dialog
+                  - text: Dialog
+              - listitem [ref=e157]:
+                - link "Drawer" [ref=e158] [cursor=pointer]:
+                  - /url: /docs/components/drawer
+                  - text: Drawer
+              - listitem [ref=e160]:
+                - link "Dropdown Menu" [ref=e161] [cursor=pointer]:
+                  - /url: /docs/components/dropdown-menu
+                  - text: Dropdown Menu
+              - listitem [ref=e163]:
+                - link "Empty New" [ref=e164] [cursor=pointer]:
+                  - /url: /docs/components/empty
+                  - text: Empty
+                  - generic "New" [ref=e166]
+              - listitem [ref=e167]:
+                - link "Field New" [ref=e168] [cursor=pointer]:
+                  - /url: /docs/components/field
+                  - text: Field
+                  - generic "New" [ref=e170]
+              - listitem [ref=e171]:
+                - link "Formsnap" [ref=e172] [cursor=pointer]:
+                  - /url: /docs/components/form
+                  - text: Formsnap
+              - listitem [ref=e174]:
+                - link "Hover Card" [ref=e175] [cursor=pointer]:
+                  - /url: /docs/components/hover-card
+                  - text: Hover Card
+              - listitem [ref=e177]:
+                - link "Input Group New" [ref=e178] [cursor=pointer]:
+                  - /url: /docs/components/input-group
+                  - text: Input Group
+                  - generic "New" [ref=e180]
+              - listitem [ref=e181]:
+                - link "Input OTP" [ref=e182] [cursor=pointer]:
+                  - /url: /docs/components/input-otp
+                  - text: Input OTP
+              - listitem [ref=e184]:
+                - link "Input" [ref=e185] [cursor=pointer]:
+                  - /url: /docs/components/input
+                  - text: Input
+              - listitem [ref=e187]:
+                - link "Item New" [ref=e188] [cursor=pointer]:
+                  - /url: /docs/components/item
+                  - text: Item
+                  - generic "New" [ref=e190]
+              - listitem [ref=e191]:
+                - link "Kbd New" [ref=e192] [cursor=pointer]:
+                  - /url: /docs/components/kbd
+                  - text: Kbd
+                  - generic "New" [ref=e194]
+              - listitem [ref=e195]:
+                - link "Label" [ref=e196] [cursor=pointer]:
+                  - /url: /docs/components/label
+                  - text: Label
+              - listitem [ref=e198]:
+                - link "Menubar" [ref=e199] [cursor=pointer]:
+                  - /url: /docs/components/menubar
+                  - text: Menubar
+              - listitem [ref=e201]:
+                - link "Native Select New" [ref=e202] [cursor=pointer]:
+                  - /url: /docs/components/native-select
+                  - text: Native Select
+                  - generic "New" [ref=e204]
+              - listitem [ref=e205]:
+                - link "Navigation Menu" [ref=e206] [cursor=pointer]:
+                  - /url: /docs/components/navigation-menu
+                  - text: Navigation Menu
+              - listitem [ref=e208]:
+                - link "Pagination" [ref=e209] [cursor=pointer]:
+                  - /url: /docs/components/pagination
+                  - text: Pagination
+              - listitem [ref=e211]:
+                - link "Popover" [ref=e212] [cursor=pointer]:
+                  - /url: /docs/components/popover
+                  - text: Popover
+              - listitem [ref=e214]:
+                - link "Progress" [ref=e215] [cursor=pointer]:
+                  - /url: /docs/components/progress
+                  - text: Progress
+              - listitem [ref=e217]:
+                - link "Radio Group" [ref=e218] [cursor=pointer]:
+                  - /url: /docs/components/radio-group
+                  - text: Radio Group
+              - listitem [ref=e220]:
+                - link "Range Calendar" [ref=e221] [cursor=pointer]:
+                  - /url: /docs/components/range-calendar
+                  - text: Range Calendar
+              - listitem [ref=e223]:
+                - link "Resizable" [ref=e224] [cursor=pointer]:
+                  - /url: /docs/components/resizable
+                  - text: Resizable
+              - listitem [ref=e226]:
+                - link "Scroll Area" [ref=e227] [cursor=pointer]:
+                  - /url: /docs/components/scroll-area
+                  - text: Scroll Area
+              - listitem [ref=e229]:
+                - link "Select" [ref=e230] [cursor=pointer]:
+                  - /url: /docs/components/select
+                  - text: Select
+              - listitem [ref=e232]:
+                - link "Separator" [ref=e233] [cursor=pointer]:
+                  - /url: /docs/components/separator
+                  - text: Separator
+              - listitem [ref=e235]:
+                - link "Sheet" [ref=e236] [cursor=pointer]:
+                  - /url: /docs/components/sheet
+                  - text: Sheet
+              - listitem [ref=e238]:
+                - link "Sidebar" [ref=e239] [cursor=pointer]:
+                  - /url: /docs/components/sidebar
+                  - text: Sidebar
+              - listitem [ref=e241]:
+                - link "Skeleton" [ref=e242] [cursor=pointer]:
+                  - /url: /docs/components/skeleton
+                  - text: Skeleton
+              - listitem [ref=e244]:
+                - link "Slider" [ref=e245] [cursor=pointer]:
+                  - /url: /docs/components/slider
+                  - text: Slider
+              - listitem [ref=e247]:
+                - link "Sonner" [ref=e248] [cursor=pointer]:
+                  - /url: /docs/components/sonner
+                  - text: Sonner
+              - listitem [ref=e250]:
+                - link "Spinner New" [ref=e251] [cursor=pointer]:
+                  - /url: /docs/components/spinner
+                  - text: Spinner
+                  - generic "New" [ref=e253]
+              - listitem [ref=e254]:
+                - link "Switch" [ref=e255] [cursor=pointer]:
+                  - /url: /docs/components/switch
+                  - text: Switch
+              - listitem [ref=e257]:
+                - link "Table" [ref=e258] [cursor=pointer]:
+                  - /url: /docs/components/table
+                  - text: Table
+              - listitem [ref=e260]:
+                - link "Tabs" [ref=e261] [cursor=pointer]:
+                  - /url: /docs/components/tabs
+                  - text: Tabs
+              - listitem [ref=e263]:
+                - link "Textarea" [ref=e264] [cursor=pointer]:
+                  - /url: /docs/components/textarea
+                  - text: Textarea
+              - listitem [ref=e266]:
+                - link "Toggle Group" [ref=e267] [cursor=pointer]:
+                  - /url: /docs/components/toggle-group
+                  - text: Toggle Group
+              - listitem [ref=e269]:
+                - link "Toggle" [ref=e270] [cursor=pointer]:
+                  - /url: /docs/components/toggle
+                  - text: Toggle
+              - listitem [ref=e272]:
+                - link "Tooltip" [ref=e273] [cursor=pointer]:
+                  - /url: /docs/components/tooltip
+                  - text: Tooltip
+              - listitem [ref=e275]:
+                - link "Typography" [ref=e276] [cursor=pointer]:
+                  - /url: /docs/components/typography
+                  - text: Typography
+          - generic [ref=e278]:
+            - generic [ref=e279]: Installation
+            - list [ref=e281]:
+              - listitem [ref=e282]:
+                - link "SvelteKit" [ref=e283] [cursor=pointer]:
+                  - /url: /docs/installation/sveltekit
+                  - text: SvelteKit
+              - listitem [ref=e285]:
+                - link "Vite" [ref=e286] [cursor=pointer]:
+                  - /url: /docs/installation/vite
+                  - text: Vite
+              - listitem [ref=e288]:
+                - link "Astro" [ref=e289] [cursor=pointer]:
+                  - /url: /docs/installation/astro
+                  - text: Astro
+              - listitem [ref=e291]:
+                - link "Manual Installation" [ref=e292] [cursor=pointer]:
+                  - /url: /docs/installation/manual
+                  - text: Manual Installation
+          - generic [ref=e294]:
+            - generic [ref=e295]: Dark Mode
+            - list [ref=e297]:
+              - listitem [ref=e298]:
+                - link "Svelte" [ref=e299] [cursor=pointer]:
+                  - /url: /docs/dark-mode/svelte
+                  - text: Svelte
+              - listitem [ref=e301]:
+                - link "Astro" [ref=e302] [cursor=pointer]:
+                  - /url: /docs/dark-mode/astro
+                  - text: Astro
+          - generic [ref=e304]:
+            - generic [ref=e305]: Registry
+            - list [ref=e307]:
+              - listitem [ref=e308]:
+                - link "Registry" [ref=e309] [cursor=pointer]:
+                  - /url: /docs/registry
+                  - text: Registry
+              - listitem [ref=e311]:
+                - link "Getting Started" [ref=e312] [cursor=pointer]:
+                  - /url: /docs/registry/getting-started
+                  - text: Getting Started
+              - listitem [ref=e314]:
+                - link "FAQ" [ref=e315] [cursor=pointer]:
+                  - /url: /docs/registry/faq
+                  - text: FAQ
+              - listitem [ref=e317]:
+                - link "Examples" [ref=e318] [cursor=pointer]:
+                  - /url: /docs/registry/examples
+                  - text: Examples
+              - listitem [ref=e320]:
+                - link "registry.json" [ref=e321] [cursor=pointer]:
+                  - /url: /docs/registry/registry-json
+                  - text: registry.json
+              - listitem [ref=e323]:
+                - link "registry-item.json" [ref=e324] [cursor=pointer]:
+                  - /url: /docs/registry/registry-item-json
+                  - text: registry-item.json
+        - generic [ref=e329]:
+          - generic [ref=e331]:
+            - generic [ref=e332]:
+              - generic [ref=e333]:
+                - generic [ref=e334]:
+                  - heading "Select" [level=1] [ref=e335]
+                  - generic [ref=e336]:
+                    - generic [ref=e337]:
+                      - button "Copy Page" [ref=e338]:
+                        - img
+                        - text: Copy Page
+                      - button [ref=e339]:
+                        - img
+                      - separator [ref=e340]
+                    - link "Previous" [ref=e341] [cursor=pointer]:
+                      - /url: /docs/components/scroll-area
+                      - img
+                      - generic [ref=e342]: Previous
+                    - link "Next" [ref=e343] [cursor=pointer]:
+                      - /url: /docs/components/separator
+                      - generic [ref=e344]: Next
+                      - img
+                - paragraph [ref=e345]: Displays a list of options for the user to pick from—triggered by a button.
+              - generic [ref=e346]:
+                - link "Docs" [ref=e347] [cursor=pointer]:
+                  - /url: https://bits-ui.com/docs/components/select
+                  - text: Docs
+                  - img
+                - link "API Reference" [ref=e348] [cursor=pointer]:
+                  - /url: https://bits-ui.com/docs/components/select#api-reference
+                  - text: API Reference
+                  - img
+                - button "Component Source" [ref=e349]:
+                  - text: Component Source
+                  - img
+            - link "Epicenter Open source, local first apps Special Sponsor" [ref=e351] [cursor=pointer]:
+              - /url: https://github.com/EpicenterHQ/epicenter
+              - img [ref=e355]
+              - generic [ref=e358]:
+                - heading "Epicenter" [level=3] [ref=e359]
+                - paragraph [ref=e360]: Open source, local first apps
+              - generic [ref=e361]: Special Sponsor
+            - generic [ref=e363]:
+              - generic [ref=e365]:
+                - generic [ref=e367]:
+                  - button "Select a fruit" [ref=e368]:
+                    - text: Select a fruit
+                    - img
+                  - textbox [ref=e369]
+                - figure [ref=e371]:
+                  - code [ref=e373]:
+                    - generic [ref=e374]: <script lang="ts">
+                    - generic [ref=e375]: import * as Select from "$lib/components/ui/select/index.js";
+                    - generic [ref=e377]: const fruits = [
+                    - generic [ref=e378]: "{ value: \"apple\", label: \"Apple\" },"
+                    - generic [ref=e379]: "{ value: \"banana\", label: \"Banana\" },"
+                    - generic [ref=e380]: "{ value: \"blueberry\", label: \"Blueberry\" },"
+                    - generic [ref=e381]: "{ value: \"grapes\", label: \"Grapes\" },"
+                    - generic [ref=e382]: "{ value: \"pineapple\", label: \"Pineapple\" }"
+                    - generic [ref=e383]: "];"
+                    - generic [ref=e385]: let value = $state("");
+                    - generic [ref=e387]: const triggerContent = $derived(
+                    - generic [ref=e388]: fruits.find((f) => f.value === value)?.label ?? "Select a fruit"
+                    - generic [ref=e389]: );
+                    - generic [ref=e390]: </script>
+                    - generic [ref=e392]: <Select.Root type="single" name="favoriteFruit" bind:value>
+                    - generic [ref=e393]: <Select.Trigger class="w-[180px]">
+                    - generic [ref=e394]: "{triggerContent}"
+                    - generic [ref=e395]: </Select.Trigger>
+                    - generic [ref=e396]: <Select.Content>
+                    - generic [ref=e397]: <Select.Group>
+                    - generic [ref=e398]: <Select.Label>Fruits</Select.Label>
+                    - generic [ref=e399]: "{#each fruits as fruit (fruit.value)}"
+                    - generic [ref=e400]: <Select.Item
+                    - generic [ref=e401]: "value={fruit.value}"
+                    - generic [ref=e402]: "label={fruit.label}"
+                    - generic [ref=e403]: "disabled={fruit.value === \"grapes\"}"
+                    - generic [ref=e404]: ">"
+                    - generic [ref=e405]: "{fruit.label}"
+                    - generic [ref=e406]: </Select.Item>
+                    - generic [ref=e407]: "{/each}"
+                    - generic [ref=e408]: </Select.Group>
+                    - generic [ref=e409]: </Select.Content>
+                    - generic [ref=e410]: </Select.Root>
+                  - button "Copy" [ref=e411]:
+                    - generic [ref=e412]: Copy
+                    - img
+              - heading "Installation" [level=2] [ref=e413]
+              - generic [ref=e415]:
+                - tablist [ref=e416]:
+                  - tab "CLI" [selected] [ref=e417]
+                  - tab "Manual" [ref=e418]
+                - tabpanel "CLI" [ref=e419]:
+                  - figure [ref=e420]:
+                    - generic [ref=e421]:
+                      - generic [ref=e422]:
+                        - generic [ref=e423]:
+                          - img [ref=e425]
+                          - tablist [ref=e427]:
+                            - tab "pnpm" [selected] [ref=e428]
+                            - tab "npm" [ref=e429]
+                            - tab "yarn" [ref=e430]
+                            - tab "bun" [ref=e431]
+                        - tabpanel "pnpm" [ref=e433]:
+                          - code [ref=e435]: pnpm dlx shadcn-svelte@latest add select
+                      - button "Copy" [ref=e436]:
+                        - generic [ref=e437]: Copy
+                        - img
+              - heading "Usage" [level=2] [ref=e438]
+              - figure [ref=e439]:
+                - code [ref=e441]:
+                  - generic [ref=e442]: <script lang="ts">
+                  - generic [ref=e443]: import * as Select from "$lib/components/ui/select/index.js";
+                  - generic [ref=e444]: </script>
+                - button "Copy" [ref=e445]:
+                  - generic [ref=e446]: Copy
+                  - img
+              - figure [ref=e447]:
+                - code [ref=e449]:
+                  - generic [ref=e450]: <Select.Root type="single">
+                  - generic [ref=e451]: <Select.Trigger class="w-[180px]"></Select.Trigger>
+                  - generic [ref=e452]: <Select.Content>
+                  - generic [ref=e453]: <Select.Item value="light">Light</Select.Item>
+                  - generic [ref=e454]: <Select.Item value="dark">Dark</Select.Item>
+                  - generic [ref=e455]: <Select.Item value="system">System</Select.Item>
+                  - generic [ref=e456]: </Select.Content>
+                  - generic [ref=e457]: </Select.Root>
+                - button "Copy" [ref=e458]:
+                  - generic [ref=e459]: Copy
+                  - img
+              - heading "Examples" [level=2] [ref=e460]
+              - heading "Scrollable" [level=3] [ref=e461]
+              - generic [ref=e463]:
+                - button "Select a timezone" [ref=e466]:
+                  - text: Select a timezone
+                  - img
+                - figure [ref=e468]:
+                  - code [ref=e470]:
+                    - generic [ref=e471]: <script lang="ts">
+                    - generic [ref=e472]: import * as Select from "$lib/components/ui/select/index.js";
+                    - generic [ref=e473]: </script>
+                    - generic [ref=e475]: <Select.Root type="single">
+                    - generic [ref=e476]: <Select.Trigger class="w-[280px]">Select a timezone</Select.Trigger>
+                    - generic [ref=e477]: <Select.Content>
+                    - generic [ref=e478]: <Select.Group>
+                    - generic [ref=e479]: <Select.Label>North America</Select.Label>
+                    - generic [ref=e480]: <Select.Item value="est">Eastern Standard Time (EST)</Select.Item>
+                    - generic [ref=e481]: <Select.Item value="cst">Central Standard Time (CST)</Select.Item>
+                    - generic [ref=e482]: <Select.Item value="mst">Mountain Standard Time (MST)</Select.Item>
+                    - generic [ref=e483]: <Select.Item value="pst">Pacific Standard Time (PST)</Select.Item>
+                    - generic [ref=e484]: <Select.Item value="akst">Alaska Standard Time (AKST)</Select.Item>
+                    - generic [ref=e485]: <Select.Item value="hst">Hawaii Standard Time (HST)</Select.Item>
+                    - generic [ref=e486]: </Select.Group>
+                    - generic [ref=e487]: <Select.Group>
+                    - generic [ref=e488]: <Select.Label>Europe & Africa</Select.Label>
+                    - generic [ref=e489]: <Select.Item value="gmt">Greenwich Mean Time (GMT)</Select.Item>
+                    - generic [ref=e490]: <Select.Item value="cet">Central European Time (CET)</Select.Item>
+                    - generic [ref=e491]: <Select.Item value="eet">Eastern European Time (EET)</Select.Item>
+                    - generic [ref=e492]: <Select.Item value="west">Western European Summer Time (WEST)</Select.Item
+                    - generic [ref=e493]: ">"
+                    - generic [ref=e494]: <Select.Item value="cat">Central Africa Time (CAT)</Select.Item>
+                    - generic [ref=e495]: <Select.Item value="eat">East Africa Time (EAT)</Select.Item>
+                    - generic [ref=e496]: </Select.Group>
+                    - generic [ref=e497]: <Select.Group>
+                    - generic [ref=e498]: <Select.Label>Asia</Select.Label>
+                    - generic [ref=e499]: <Select.Item value="msk">Moscow Time (MSK)</Select.Item>
+                    - generic [ref=e500]: <Select.Item value="ist">India Standard Time (IST)</Select.Item>
+                    - generic [ref=e501]: <Select.Item value="cst_china">China Standard Time (CST)</Select.Item>
+                    - generic [ref=e502]: <Select.Item value="jst">Japan Standard Time (JST)</Select.Item>
+                    - generic [ref=e503]: <Select.Item value="kst">Korea Standard Time (KST)</Select.Item>
+                    - generic [ref=e504]: <Select.Item value="ist_indonesia"
+                    - generic [ref=e505]: ">Indonesia Central Standard Time (WITA)</Select.Item"
+                    - generic [ref=e506]: ">"
+                    - generic [ref=e507]: </Select.Group>
+                    - generic [ref=e508]: <Select.Group>
+                    - generic [ref=e509]: <Select.Label>Australia & Pacific</Select.Label>
+                    - generic [ref=e510]: <Select.Item value="awst"
+                    - generic [ref=e511]: ">Australian Western Standard Time (AWST)</Select.Item"
+                    - generic [ref=e512]: ">"
+                    - generic [ref=e513]: <Select.Item value="acst"
+                    - generic [ref=e514]: ">Australian Central Standard Time (ACST)</Select.Item"
+                    - generic [ref=e515]: ">"
+                    - generic [ref=e516]: <Select.Item value="aest"
+                    - generic [ref=e517]: ">Australian Eastern Standard Time (AEST)</Select.Item"
+                    - generic [ref=e518]: ">"
+                    - generic [ref=e519]: <Select.Item value="nzst">New Zealand Standard Time (NZST)</Select.Item>
+                    - generic [ref=e520]: <Select.Item value="fjt">Fiji Time (FJT)</Select.Item>
+                    - generic [ref=e521]: </Select.Group>
+                    - generic [ref=e522]: <Select.Group>
+                    - generic [ref=e523]: <Select.Label>South America</Select.Label>
+                    - generic [ref=e524]: <Select.Item value="art">Argentina Time (ART)</Select.Item>
+                    - generic [ref=e525]: <Select.Item value="bot">Bolivia Time (BOT)</Select.Item>
+                    - generic [ref=e526]: <Select.Item value="brt">Brasilia Time (BRT)</Select.Item>
+                    - generic [ref=e527]: <Select.Item value="clt">Chile Standard Time (CLT)</Select.Item>
+                    - generic [ref=e528]: </Select.Group>
+                    - generic [ref=e529]: </Select.Content>
+                    - generic [ref=e530]: </Select.Root>
+                  - button "Copy" [ref=e531]:
+                    - generic [ref=e532]: Copy
+                    - img
+          - generic [ref=e533]:
+            - link "Scroll Area" [ref=e534] [cursor=pointer]:
+              - /url: /docs/components/scroll-area
+              - img
+              - text: Scroll Area
+            - link "Separator" [ref=e535] [cursor=pointer]:
+              - /url: /docs/components/separator
+              - text: Separator
+              - img
+    - contentinfo [ref=e536]:
+      - generic [ref=e539]:
+        - text: Built by
+        - link "shadcn" [ref=e540] [cursor=pointer]:
+          - /url: https://x.com/shadcn
+        - text: . Ported to Svelte by
+        - link "Huntabyte" [ref=e541] [cursor=pointer]:
+          - /url: https://x.com/huntabyte
+        - text: "&"
+        - link "CokaKoala" [ref=e542] [cursor=pointer]:
+          - /url: https://github.com/adriangonz97
+        - text: .

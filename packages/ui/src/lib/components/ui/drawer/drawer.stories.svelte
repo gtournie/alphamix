@@ -35,7 +35,8 @@
 		if (typeof window === "undefined") return;
 		const mq = window.matchMedia("(min-width: 768px)");
 		isDesktop = mq.matches;
-		const handler = (/** @type {MediaQueryListEvent} */ e) => (isDesktop = e.matches);
+		const handler = (/** @type {MediaQueryListEvent} */ e) =>
+			(isDesktop = e.matches);
 		mq.addEventListener("change", handler);
 		return () => mq.removeEventListener("change", handler);
 	});
@@ -57,12 +58,13 @@
 				<div class="no-scrollbar overflow-y-auto px-4">
 					{#each Array.from({ length: 10 }) as _}
 						<p class="mb-4 leading-normal">
-							Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor
-							incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud
-							exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure
-							dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.
-							Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt
-							mollit anim id est laborum.
+							Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do
+							eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut
+							enim ad minim veniam, quis nostrud exercitation ullamco laboris
+							nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in
+							reprehenderit in voluptate velit esse cillum dolore eu fugiat
+							nulla pariatur. Excepteur sint occaecat cupidatat non proident,
+							sunt in culpa qui officia deserunt mollit anim id est laborum.
 						</p>
 					{/each}
 				</div>
@@ -90,7 +92,9 @@
 				>
 					<Drawer.Trigger>
 						{#snippet child({ props })}
-							<Button variant="outline" class="capitalize" {...props}>{side}</Button>
+							<Button variant="outline" class="capitalize" {...props}
+								>{side}</Button
+							>
 						{/snippet}
 					</Drawer.Trigger>
 					<Drawer.Content
@@ -98,17 +102,21 @@
 					>
 						<Drawer.Header>
 							<Drawer.Title>Move Goal</Drawer.Title>
-							<Drawer.Description>Set your daily activity goal.</Drawer.Description>
+							<Drawer.Description
+								>Set your daily activity goal.</Drawer.Description
+							>
 						</Drawer.Header>
 						<div class="no-scrollbar overflow-y-auto px-4">
 							{#each Array.from({ length: 10 }) as _}
 								<p class="mb-4 leading-normal">
-									Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor
-									incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud
-									exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute
-									irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla
-									pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia
-									deserunt mollit anim id est laborum.
+									Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed
+									do eiusmod tempor incididunt ut labore et dolore magna aliqua.
+									Ut enim ad minim veniam, quis nostrud exercitation ullamco
+									laboris nisi ut aliquip ex ea commodo consequat. Duis aute
+									irure dolor in reprehenderit in voluptate velit esse cillum
+									dolore eu fugiat nulla pariatur. Excepteur sint occaecat
+									cupidatat non proident, sunt in culpa qui officia deserunt
+									mollit anim id est laborum.
 								</p>
 							{/each}
 						</div>
@@ -136,7 +144,7 @@
 						<Button variant="outline" {...props}>Edit Profile</Button>
 					{/snippet}
 				</Dialog.Trigger>
-				<Dialog.Content class="sm:max-w-[425px]">
+				<Dialog.Content class="sm:max-w-106.25">
 					<Dialog.Header>
 						<Dialog.Title>Edit profile</Dialog.Title>
 						<Dialog.Description>
@@ -146,7 +154,11 @@
 					<form class="grid items-start gap-6">
 						<div class="grid gap-3">
 							<Label for="email-desktop">Email</Label>
-							<Input type="email" id="email-desktop" value="shadcn@example.com" />
+							<Input
+								type="email"
+								id="email-desktop"
+								value="shadcn@example.com"
+							/>
 						</div>
 						<div class="grid gap-3">
 							<Label for="username-desktop">Username</Label>
@@ -173,7 +185,11 @@
 					<form class={cn("grid items-start gap-6", "px-4")}>
 						<div class="grid gap-3">
 							<Label for="email-mobile">Email</Label>
-							<Input type="email" id="email-mobile" value="shadcn@example.com" />
+							<Input
+								type="email"
+								id="email-mobile"
+								value="shadcn@example.com"
+							/>
 						</div>
 						<div class="grid gap-3">
 							<Label for="username-mobile">Username</Label>

@@ -1,0 +1,1073 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - banner [ref=e3]:
+      - generic [ref=e5]:
+        - link "shadcn/ui" [ref=e6] [cursor=pointer]:
+          - /url: /
+          - img
+          - generic [ref=e7]: shadcn/ui
+        - navigation [ref=e8]:
+          - link "Docs" [ref=e9] [cursor=pointer]:
+            - /url: /docs/installation
+          - link "Components" [ref=e10] [cursor=pointer]:
+            - /url: /docs/components
+          - link "Blocks" [ref=e11] [cursor=pointer]:
+            - /url: /blocks
+          - link "Charts" [ref=e12] [cursor=pointer]:
+            - /url: /charts/area
+          - link "Directory" [ref=e13] [cursor=pointer]:
+            - /url: /docs/directory
+          - link "Create" [ref=e14] [cursor=pointer]:
+            - /url: /create
+        - generic [ref=e15]:
+          - button "Search..." [ref=e17]:
+            - generic [ref=e18]: Search...
+          - link "111k" [ref=e19] [cursor=pointer]:
+            - /url: https://github.com/shadcn-ui/ui
+            - img
+            - generic [ref=e20]: 111k
+          - button "Toggle theme" [ref=e21]:
+            - img
+            - generic [ref=e22]: Toggle theme
+          - link "New" [ref=e24] [cursor=pointer]:
+            - /url: /create
+            - img
+            - text: New
+    - main [ref=e25]:
+      - generic [ref=e27]:
+        - generic [ref=e32]:
+          - generic [ref=e33]:
+            - generic [ref=e34]: Sections
+            - list [ref=e36]:
+              - listitem [ref=e37]:
+                - link "Introduction" [ref=e38] [cursor=pointer]:
+                  - /url: /docs
+                  - text: Introduction
+              - listitem [ref=e40]:
+                - link "Components" [ref=e41] [cursor=pointer]:
+                  - /url: /docs/components
+                  - text: Components
+              - listitem [ref=e43]:
+                - link "Installation" [ref=e44] [cursor=pointer]:
+                  - /url: /docs/installation
+                  - text: Installation
+              - listitem [ref=e46]:
+                - link "Theming" [ref=e47] [cursor=pointer]:
+                  - /url: /docs/theming
+                  - text: Theming
+              - listitem [ref=e49]:
+                - link "CLI New" [ref=e50] [cursor=pointer]:
+                  - /url: /docs/cli
+                  - text: CLI
+                  - generic "New" [ref=e52]
+              - listitem [ref=e53]:
+                - link "RTL" [ref=e54] [cursor=pointer]:
+                  - /url: /docs/rtl
+                  - text: RTL
+              - listitem [ref=e56]:
+                - link "Skills New" [ref=e57] [cursor=pointer]:
+                  - /url: /docs/skills
+                  - text: Skills
+                  - generic "New" [ref=e59]
+              - listitem [ref=e60]:
+                - link "MCP Server" [ref=e61] [cursor=pointer]:
+                  - /url: /docs/mcp
+                  - text: MCP Server
+              - listitem [ref=e63]:
+                - link "Registry" [ref=e64] [cursor=pointer]:
+                  - /url: /docs/registry
+                  - text: Registry
+              - listitem [ref=e66]:
+                - link "Forms" [ref=e67] [cursor=pointer]:
+                  - /url: /docs/forms
+                  - text: Forms
+              - listitem [ref=e69]:
+                - link "Changelog New" [ref=e70] [cursor=pointer]:
+                  - /url: /docs/changelog
+                  - text: Changelog
+                  - generic "New" [ref=e72]
+          - generic [ref=e73]:
+            - generic [ref=e74]: Components
+            - list [ref=e76]:
+              - listitem [ref=e77]:
+                - link "Accordion" [ref=e78] [cursor=pointer]:
+                  - /url: /docs/components/radix/accordion
+                  - text: Accordion
+              - listitem [ref=e80]:
+                - link "Alert" [ref=e81] [cursor=pointer]:
+                  - /url: /docs/components/radix/alert
+                  - text: Alert
+              - listitem [ref=e83]:
+                - link "Alert Dialog" [ref=e84] [cursor=pointer]:
+                  - /url: /docs/components/radix/alert-dialog
+                  - text: Alert Dialog
+              - listitem [ref=e86]:
+                - link "Aspect Ratio" [ref=e87] [cursor=pointer]:
+                  - /url: /docs/components/radix/aspect-ratio
+                  - text: Aspect Ratio
+              - listitem [ref=e89]:
+                - link "Avatar" [ref=e90] [cursor=pointer]:
+                  - /url: /docs/components/radix/avatar
+                  - text: Avatar
+              - listitem [ref=e92]:
+                - link "Badge" [ref=e93] [cursor=pointer]:
+                  - /url: /docs/components/radix/badge
+                  - text: Badge
+              - listitem [ref=e95]:
+                - link "Breadcrumb" [ref=e96] [cursor=pointer]:
+                  - /url: /docs/components/radix/breadcrumb
+                  - text: Breadcrumb
+              - listitem [ref=e98]:
+                - link "Button" [ref=e99] [cursor=pointer]:
+                  - /url: /docs/components/radix/button
+                  - text: Button
+              - listitem [ref=e101]:
+                - link "Button Group" [ref=e102] [cursor=pointer]:
+                  - /url: /docs/components/radix/button-group
+                  - text: Button Group
+              - listitem [ref=e104]:
+                - link "Calendar" [ref=e105] [cursor=pointer]:
+                  - /url: /docs/components/radix/calendar
+                  - text: Calendar
+              - listitem [ref=e107]:
+                - link "Card" [ref=e108] [cursor=pointer]:
+                  - /url: /docs/components/radix/card
+                  - text: Card
+              - listitem [ref=e110]:
+                - link "Carousel" [ref=e111] [cursor=pointer]:
+                  - /url: /docs/components/radix/carousel
+                  - text: Carousel
+              - listitem [ref=e113]:
+                - link "Chart" [ref=e114] [cursor=pointer]:
+                  - /url: /docs/components/radix/chart
+                  - text: Chart
+              - listitem [ref=e116]:
+                - link "Checkbox" [ref=e117] [cursor=pointer]:
+                  - /url: /docs/components/radix/checkbox
+                  - text: Checkbox
+              - listitem [ref=e119]:
+                - link "Collapsible" [ref=e120] [cursor=pointer]:
+                  - /url: /docs/components/radix/collapsible
+                  - text: Collapsible
+              - listitem [ref=e122]:
+                - link "Combobox" [ref=e123] [cursor=pointer]:
+                  - /url: /docs/components/radix/combobox
+                  - text: Combobox
+              - listitem [ref=e125]:
+                - link "Command" [ref=e126] [cursor=pointer]:
+                  - /url: /docs/components/radix/command
+                  - text: Command
+              - listitem [ref=e128]:
+                - link "Context Menu" [ref=e129] [cursor=pointer]:
+                  - /url: /docs/components/radix/context-menu
+                  - text: Context Menu
+              - listitem [ref=e131]:
+                - link "Data Table" [ref=e132] [cursor=pointer]:
+                  - /url: /docs/components/radix/data-table
+                  - text: Data Table
+              - listitem [ref=e134]:
+                - link "Date Picker" [ref=e135] [cursor=pointer]:
+                  - /url: /docs/components/radix/date-picker
+                  - text: Date Picker
+              - listitem [ref=e137]:
+                - link "Dialog" [ref=e138] [cursor=pointer]:
+                  - /url: /docs/components/radix/dialog
+                  - text: Dialog
+              - listitem [ref=e140]:
+                - link "Direction" [ref=e141] [cursor=pointer]:
+                  - /url: /docs/components/radix/direction
+                  - text: Direction
+              - listitem [ref=e143]:
+                - link "Drawer" [ref=e144] [cursor=pointer]:
+                  - /url: /docs/components/radix/drawer
+                  - text: Drawer
+              - listitem [ref=e146]:
+                - link "Dropdown Menu" [ref=e147] [cursor=pointer]:
+                  - /url: /docs/components/radix/dropdown-menu
+                  - text: Dropdown Menu
+              - listitem [ref=e149]:
+                - link "Empty" [ref=e150] [cursor=pointer]:
+                  - /url: /docs/components/radix/empty
+                  - text: Empty
+              - listitem [ref=e152]:
+                - link "Field" [ref=e153] [cursor=pointer]:
+                  - /url: /docs/components/radix/field
+                  - text: Field
+              - listitem [ref=e155]:
+                - link "Hover Card" [ref=e156] [cursor=pointer]:
+                  - /url: /docs/components/radix/hover-card
+                  - text: Hover Card
+              - listitem [ref=e158]:
+                - link "Input" [ref=e159] [cursor=pointer]:
+                  - /url: /docs/components/radix/input
+                  - text: Input
+              - listitem [ref=e161]:
+                - link "Input Group" [ref=e162] [cursor=pointer]:
+                  - /url: /docs/components/radix/input-group
+                  - text: Input Group
+              - listitem [ref=e164]:
+                - link "Input OTP" [ref=e165] [cursor=pointer]:
+                  - /url: /docs/components/radix/input-otp
+                  - text: Input OTP
+              - listitem [ref=e167]:
+                - link "Item" [ref=e168] [cursor=pointer]:
+                  - /url: /docs/components/radix/item
+                  - text: Item
+              - listitem [ref=e170]:
+                - link "Kbd" [ref=e171] [cursor=pointer]:
+                  - /url: /docs/components/radix/kbd
+                  - text: Kbd
+              - listitem [ref=e173]:
+                - link "Label" [ref=e174] [cursor=pointer]:
+                  - /url: /docs/components/radix/label
+                  - text: Label
+              - listitem [ref=e176]:
+                - link "Menubar" [ref=e177] [cursor=pointer]:
+                  - /url: /docs/components/radix/menubar
+                  - text: Menubar
+              - listitem [ref=e179]:
+                - link "Native Select" [ref=e180] [cursor=pointer]:
+                  - /url: /docs/components/radix/native-select
+                  - text: Native Select
+              - listitem [ref=e182]:
+                - link "Navigation Menu" [ref=e183] [cursor=pointer]:
+                  - /url: /docs/components/radix/navigation-menu
+                  - text: Navigation Menu
+              - listitem [ref=e185]:
+                - link "Pagination" [ref=e186] [cursor=pointer]:
+                  - /url: /docs/components/radix/pagination
+                  - text: Pagination
+              - listitem [ref=e188]:
+                - link "Popover" [ref=e189] [cursor=pointer]:
+                  - /url: /docs/components/radix/popover
+                  - text: Popover
+              - listitem [ref=e191]:
+                - link "Progress" [ref=e192] [cursor=pointer]:
+                  - /url: /docs/components/radix/progress
+                  - text: Progress
+              - listitem [ref=e194]:
+                - link "Radio Group" [ref=e195] [cursor=pointer]:
+                  - /url: /docs/components/radix/radio-group
+                  - text: Radio Group
+              - listitem [ref=e197]:
+                - link "Resizable" [ref=e198] [cursor=pointer]:
+                  - /url: /docs/components/radix/resizable
+                  - text: Resizable
+              - listitem [ref=e200]:
+                - link "Scroll Area" [ref=e201] [cursor=pointer]:
+                  - /url: /docs/components/radix/scroll-area
+                  - text: Scroll Area
+              - listitem [ref=e203]:
+                - link "Select" [ref=e204] [cursor=pointer]:
+                  - /url: /docs/components/radix/select
+                  - text: Select
+              - listitem [ref=e206]:
+                - link "Separator" [ref=e207] [cursor=pointer]:
+                  - /url: /docs/components/radix/separator
+                  - text: Separator
+              - listitem [ref=e209]:
+                - link "Sheet" [ref=e210] [cursor=pointer]:
+                  - /url: /docs/components/radix/sheet
+                  - text: Sheet
+              - listitem [ref=e212]:
+                - link "Sidebar" [ref=e213] [cursor=pointer]:
+                  - /url: /docs/components/radix/sidebar
+                  - text: Sidebar
+              - listitem [ref=e215]:
+                - link "Skeleton" [ref=e216] [cursor=pointer]:
+                  - /url: /docs/components/radix/skeleton
+                  - text: Skeleton
+              - listitem [ref=e218]:
+                - link "Slider" [ref=e219] [cursor=pointer]:
+                  - /url: /docs/components/radix/slider
+                  - text: Slider
+              - listitem [ref=e221]:
+                - link "Sonner" [ref=e222] [cursor=pointer]:
+                  - /url: /docs/components/radix/sonner
+                  - text: Sonner
+              - listitem [ref=e224]:
+                - link "Spinner" [ref=e225] [cursor=pointer]:
+                  - /url: /docs/components/radix/spinner
+                  - text: Spinner
+              - listitem [ref=e227]:
+                - link "Switch" [ref=e228] [cursor=pointer]:
+                  - /url: /docs/components/radix/switch
+                  - text: Switch
+              - listitem [ref=e230]:
+                - link "Table" [ref=e231] [cursor=pointer]:
+                  - /url: /docs/components/radix/table
+                  - text: Table
+              - listitem [ref=e233]:
+                - link "Tabs" [ref=e234] [cursor=pointer]:
+                  - /url: /docs/components/radix/tabs
+                  - text: Tabs
+              - listitem [ref=e236]:
+                - link "Textarea" [ref=e237] [cursor=pointer]:
+                  - /url: /docs/components/radix/textarea
+                  - text: Textarea
+              - listitem [ref=e239]:
+                - link "Toast" [ref=e240] [cursor=pointer]:
+                  - /url: /docs/components/radix/toast
+                  - text: Toast
+              - listitem [ref=e242]:
+                - link "Toggle" [ref=e243] [cursor=pointer]:
+                  - /url: /docs/components/radix/toggle
+                  - text: Toggle
+              - listitem [ref=e245]:
+                - link "Toggle Group" [ref=e246] [cursor=pointer]:
+                  - /url: /docs/components/radix/toggle-group
+                  - text: Toggle Group
+              - listitem [ref=e248]:
+                - link "Tooltip" [ref=e249] [cursor=pointer]:
+                  - /url: /docs/components/radix/tooltip
+                  - text: Tooltip
+              - listitem [ref=e251]:
+                - link "Typography" [ref=e252] [cursor=pointer]:
+                  - /url: /docs/components/radix/typography
+                  - text: Typography
+          - generic [ref=e254]:
+            - generic [ref=e255]: Get Started
+            - list [ref=e257]:
+              - listitem [ref=e258]:
+                - link "Installation" [ref=e259] [cursor=pointer]:
+                  - /url: /docs/installation
+                  - text: Installation
+              - listitem [ref=e261]:
+                - link "components.json" [ref=e262] [cursor=pointer]:
+                  - /url: /docs/components-json
+                  - text: components.json
+              - listitem [ref=e264]:
+                - link "Theming" [ref=e265] [cursor=pointer]:
+                  - /url: /docs/theming
+                  - text: Theming
+              - listitem [ref=e267]:
+                - link "Dark Mode" [ref=e268] [cursor=pointer]:
+                  - /url: /docs/dark-mode
+                  - text: Dark Mode
+              - listitem [ref=e270]:
+                - link "CLI New" [ref=e271] [cursor=pointer]:
+                  - /url: /docs/cli
+                  - text: CLI
+                  - generic "New" [ref=e273]
+              - listitem [ref=e274]:
+                - link "Monorepo" [ref=e275] [cursor=pointer]:
+                  - /url: /docs/monorepo
+                  - text: Monorepo
+              - listitem [ref=e277]:
+                - link "Skills New" [ref=e278] [cursor=pointer]:
+                  - /url: /docs/skills
+                  - text: Skills
+                  - generic "New" [ref=e280]
+              - listitem [ref=e281]:
+                - link "Open in v0" [ref=e282] [cursor=pointer]:
+                  - /url: /docs/v0
+                  - text: Open in v0
+              - listitem [ref=e284]:
+                - link "JavaScript" [ref=e285] [cursor=pointer]:
+                  - /url: /docs/javascript
+                  - text: JavaScript
+              - listitem [ref=e287]:
+                - link "Figma" [ref=e288] [cursor=pointer]:
+                  - /url: /docs/figma
+                  - text: Figma
+              - listitem [ref=e290]:
+                - link "llms.txt" [ref=e291] [cursor=pointer]:
+                  - /url: /llms.txt
+                  - text: llms.txt
+              - listitem [ref=e293]:
+                - link "Legacy Docs" [ref=e294] [cursor=pointer]:
+                  - /url: /docs/legacy
+                  - text: Legacy Docs
+          - generic [ref=e296]:
+            - generic [ref=e297]: Forms
+            - list [ref=e299]:
+              - listitem [ref=e300]:
+                - link "React Hook Form" [ref=e301] [cursor=pointer]:
+                  - /url: /docs/forms/react-hook-form
+                  - text: React Hook Form
+              - listitem [ref=e303]:
+                - link "TanStack Form" [ref=e304] [cursor=pointer]:
+                  - /url: /docs/forms/tanstack-form
+                  - text: TanStack Form
+          - generic [ref=e306]:
+            - generic [ref=e307]: Registry
+            - list [ref=e309]:
+              - listitem [ref=e310]:
+                - link "Introduction" [ref=e311] [cursor=pointer]:
+                  - /url: /docs/registry
+                  - text: Introduction
+              - listitem [ref=e313]:
+                - link "Getting Started" [ref=e314] [cursor=pointer]:
+                  - /url: /docs/registry/getting-started
+                  - text: Getting Started
+              - listitem [ref=e316]:
+                - link "Namespaces" [ref=e317] [cursor=pointer]:
+                  - /url: /docs/registry/namespace
+                  - text: Namespaces
+              - listitem [ref=e319]:
+                - link "Authentication" [ref=e320] [cursor=pointer]:
+                  - /url: /docs/registry/authentication
+                  - text: Authentication
+              - listitem [ref=e322]:
+                - link "Examples" [ref=e323] [cursor=pointer]:
+                  - /url: /docs/registry/examples
+                  - text: Examples
+              - listitem [ref=e325]:
+                - link "MCP Server" [ref=e326] [cursor=pointer]:
+                  - /url: /docs/registry/mcp
+                  - text: MCP Server
+              - listitem [ref=e328]:
+                - link "Add a Registry" [ref=e329] [cursor=pointer]:
+                  - /url: /docs/registry/registry-index
+                  - text: Add a Registry
+              - listitem [ref=e331]:
+                - link "Open in v0" [ref=e332] [cursor=pointer]:
+                  - /url: /docs/registry/open-in-v0
+                  - text: Open in v0
+              - listitem [ref=e334]:
+                - link "registry.json" [ref=e335] [cursor=pointer]:
+                  - /url: /docs/registry/registry-json
+                  - text: registry.json
+              - listitem [ref=e337]:
+                - link "registry-item.json" [ref=e338] [cursor=pointer]:
+                  - /url: /docs/registry/registry-item-json
+                  - text: registry-item.json
+        - generic [ref=e345]:
+          - generic [ref=e347]:
+            - generic [ref=e348]:
+              - heading "Carousel" [level=1] [ref=e349]
+              - generic [ref=e350]:
+                - generic [ref=e352]:
+                  - button "Copy Page" [ref=e353]:
+                    - img
+                    - text: Copy Page
+                  - button [ref=e354]:
+                    - img
+                - generic [ref=e355]:
+                  - link "Previous" [ref=e356] [cursor=pointer]:
+                    - /url: /docs/components/radix/card
+                    - img
+                    - generic [ref=e357]: Previous
+                  - link "Next" [ref=e358] [cursor=pointer]:
+                    - /url: /docs/components/radix/chart
+                    - generic [ref=e359]: Next
+                    - img
+            - paragraph [ref=e360]: A carousel with motion and swipe built using Embla.
+          - generic [ref=e361]:
+            - generic [ref=e362]:
+              - link "Radix UI" [ref=e363] [cursor=pointer]:
+                - /url: /docs/components/radix/carousel
+              - link "Base UI" [ref=e364] [cursor=pointer]:
+                - /url: /docs/components/base/carousel
+              - img "Radix UI" [ref=e366]
+            - generic [ref=e368]:
+              - region [ref=e371]:
+                - generic [ref=e373]:
+                  - group [ref=e374]:
+                    - generic [ref=e378]: "1"
+                  - group [ref=e379]:
+                    - generic [ref=e383]: "2"
+                  - group [ref=e384]:
+                    - generic [ref=e388]: "3"
+                  - group [ref=e389]:
+                    - generic [ref=e393]: "4"
+                  - group [ref=e394]:
+                    - generic [ref=e398]: "5"
+                - button "Previous slide" [disabled]:
+                  - img
+                  - generic: Previous slide
+                - button "Next slide" [ref=e977]:
+                  - img
+                  - generic [ref=e978]: Next slide
+              - generic [ref=e400]:
+                - figure [ref=e402]:
+                  - code [ref=e405]:
+                    - generic [ref=e406]: import * as React from "react"
+                    - generic [ref=e408]: "import { Card, CardContent } from \"@/components/ui/card\""
+                - button "View Code" [ref=e411]
+            - heading "About" [level=2] [ref=e412]
+            - paragraph [ref=e413]:
+              - text: The carousel component is built using the
+              - link "Embla Carousel" [ref=e414] [cursor=pointer]:
+                - /url: https://www.embla-carousel.com/
+              - text: library.
+            - heading "Installation" [level=2] [ref=e415]
+            - generic [ref=e416]:
+              - tablist [ref=e417]:
+                - tab "Command" [selected] [ref=e418]
+                - tab "Manual" [ref=e419]
+              - tabpanel "Command" [ref=e420]:
+                - figure [ref=e421]:
+                  - generic [ref=e423]:
+                    - generic [ref=e424]:
+                      - generic [ref=e425]:
+                        - img [ref=e427]
+                        - tablist [ref=e429]:
+                          - tab "pnpm" [selected] [ref=e430]
+                          - tab "npm" [ref=e431]
+                          - tab "yarn" [ref=e432]
+                          - tab "bun" [ref=e433]
+                      - tabpanel "pnpm" [ref=e435]:
+                        - code [ref=e437]: pnpm dlx shadcn@latest add carousel
+                    - button "Copy" [ref=e438]:
+                      - generic [ref=e439]: Copy
+                      - img
+            - heading "Usage" [level=2] [ref=e440]
+            - figure [ref=e441]:
+              - generic [ref=e442]:
+                - button "Copy" [ref=e443]:
+                  - generic [ref=e444]: Copy
+                  - img
+                - code [ref=e445]:
+                  - generic [ref=e446]: "import {"
+                  - generic [ref=e447]: Carousel,
+                  - generic [ref=e448]: CarouselContent,
+                  - generic [ref=e449]: CarouselItem,
+                  - generic [ref=e450]: CarouselNext,
+                  - generic [ref=e451]: CarouselPrevious,
+                  - generic [ref=e452]: "} from \"@/components/ui/carousel\""
+            - figure [ref=e453]:
+              - generic [ref=e454]:
+                - button "Copy" [ref=e455]:
+                  - generic [ref=e456]: Copy
+                  - img
+                - code [ref=e457]:
+                  - generic [ref=e458]: <Carousel>
+                  - generic [ref=e459]: <CarouselContent>
+                  - generic [ref=e460]: <CarouselItem>...</CarouselItem>
+                  - generic [ref=e461]: <CarouselItem>...</CarouselItem>
+                  - generic [ref=e462]: <CarouselItem>...</CarouselItem>
+                  - generic [ref=e463]: </CarouselContent>
+                  - generic [ref=e464]: <CarouselPrevious />
+                  - generic [ref=e465]: <CarouselNext />
+                  - generic [ref=e466]: </Carousel>
+            - heading "Examples" [level=2] [ref=e467]
+            - heading "Sizes" [level=3] [ref=e468]
+            - paragraph [ref=e469]:
+              - text: To set the size of the items, you can use the
+              - code [ref=e470]: basis
+              - text: utility class on the
+              - code [ref=e471]: <CarouselItem />
+              - text: .
+            - generic [ref=e472]:
+              - region [ref=e475]:
+                - generic [ref=e477]:
+                  - group [ref=e478]:
+                    - generic [ref=e482]: "1"
+                  - group [ref=e483]:
+                    - generic [ref=e487]: "2"
+                  - group [ref=e488]:
+                    - generic [ref=e492]: "3"
+                  - group [ref=e493]:
+                    - generic [ref=e497]: "4"
+                  - group [ref=e498]:
+                    - generic [ref=e502]: "5"
+                - button "Previous slide" [disabled]:
+                  - img
+                  - generic: Previous slide
+                - button "Next slide" [ref=e979]:
+                  - img
+                  - generic [ref=e980]: Next slide
+              - figure [ref=e995]:
+                - button "Copy" [ref=e996]:
+                  - generic [ref=e997]: Copy
+                  - img
+                - code [ref=e1000]:
+                  - generic [ref=e1001]: import * as React from "react"
+                  - generic [ref=e1003]: "import { Card, CardContent } from \"@/components/ui/card\""
+                  - generic [ref=e1004]: "import {"
+                  - generic [ref=e1005]: Carousel,
+                  - generic [ref=e1006]: CarouselContent,
+                  - generic [ref=e1007]: CarouselItem,
+                  - generic [ref=e1008]: CarouselNext,
+                  - generic [ref=e1009]: CarouselPrevious,
+                  - generic [ref=e1010]: "} from \"@/components/ui/carousel\""
+                  - generic [ref=e1012]: "export function CarouselSize() {"
+                  - generic [ref=e1013]: return (
+                  - generic [ref=e1014]: <Carousel
+                  - generic [ref=e1015]: "opts={{"
+                  - generic [ref=e1016]: "align: \"start\","
+                  - generic [ref=e1017]: "}}"
+                  - generic [ref=e1018]: className="w-full max-w-[12rem] sm:max-w-xs md:max-w-sm"
+                  - generic [ref=e1019]: ">"
+                  - generic [ref=e1020]: <CarouselContent>
+                  - generic [ref=e1021]: "{Array.from({ length: 5 }).map((_, index) => ("
+                  - generic [ref=e1022]: "<CarouselItem key={index} className=\"basis-1/2 lg:basis-1/3\">"
+                  - generic [ref=e1023]: <div className="p-1">
+                  - generic [ref=e1024]: <Card>
+                  - generic [ref=e1025]: <CardContent className="flex aspect-square items-center justify-center p-6">
+                  - generic [ref=e1026]: "<span className=\"text-3xl font-semibold\">{index + 1}</span>"
+                  - generic [ref=e1027]: </CardContent>
+                  - generic [ref=e1028]: </Card>
+                  - generic [ref=e1029]: </div>
+                  - generic [ref=e1030]: </CarouselItem>
+                  - generic [ref=e1031]: "))}"
+                  - generic [ref=e1032]: </CarouselContent>
+                  - generic [ref=e1033]: <CarouselPrevious />
+                  - generic [ref=e1034]: <CarouselNext />
+                  - generic [ref=e1035]: </Carousel>
+                  - generic [ref=e1036]: )
+                  - generic [ref=e1037]: "}"
+            - figure [ref=e516]:
+              - generic [ref=e517]:
+                - button "Copy" [ref=e518]:
+                  - generic [ref=e519]: Copy
+                  - img
+                - code [ref=e520]:
+                  - generic [ref=e521]: // 33% of the carousel width.
+                  - generic [ref=e522]: <Carousel>
+                  - generic [ref=e523]: <CarouselContent>
+                  - generic [ref=e524]: <CarouselItem className="basis-1/3">...</CarouselItem>
+                  - generic [ref=e525]: <CarouselItem className="basis-1/3">...</CarouselItem>
+                  - generic [ref=e526]: <CarouselItem className="basis-1/3">...</CarouselItem>
+                  - generic [ref=e527]: </CarouselContent>
+                  - generic [ref=e528]: </Carousel>
+            - figure [ref=e529]:
+              - generic [ref=e530]:
+                - button "Copy" [ref=e531]:
+                  - generic [ref=e532]: Copy
+                  - img
+                - code [ref=e533]:
+                  - generic [ref=e534]: // 50% on small screens and 33% on larger screens.
+                  - generic [ref=e535]: <Carousel>
+                  - generic [ref=e536]: <CarouselContent>
+                  - generic [ref=e537]: <CarouselItem className="md:basis-1/2 lg:basis-1/3">...</CarouselItem>
+                  - generic [ref=e538]: <CarouselItem className="md:basis-1/2 lg:basis-1/3">...</CarouselItem>
+                  - generic [ref=e539]: <CarouselItem className="md:basis-1/2 lg:basis-1/3">...</CarouselItem>
+                  - generic [ref=e540]: </CarouselContent>
+                  - generic [ref=e541]: </Carousel>
+            - heading "Spacing" [level=3] [ref=e542]
+            - paragraph [ref=e543]:
+              - text: To set the spacing between the items, we use a
+              - code [ref=e544]: pl-[VALUE]
+              - text: utility on the
+              - code [ref=e545]: <CarouselItem />
+              - text: and a negative
+              - code [ref=e546]: "-ml-[VALUE]"
+              - text: on the
+              - code [ref=e547]: <CarouselContent />
+              - text: .
+            - generic [ref=e548]:
+              - region [ref=e551]:
+                - generic [ref=e553]:
+                  - group [ref=e554]:
+                    - generic [ref=e558]: "1"
+                  - group [ref=e559]:
+                    - generic [ref=e563]: "2"
+                  - group [ref=e564]:
+                    - generic [ref=e568]: "3"
+                  - group [ref=e569]:
+                    - generic [ref=e573]: "4"
+                  - group [ref=e574]:
+                    - generic [ref=e578]: "5"
+                - button "Previous slide" [disabled]:
+                  - img
+                  - generic: Previous slide
+                - button "Next slide" [ref=e981]:
+                  - img
+                  - generic [ref=e982]: Next slide
+              - figure [ref=e1040]:
+                - button "Copy" [ref=e1041]:
+                  - generic [ref=e1042]: Copy
+                  - img
+                - code [ref=e1045]:
+                  - generic [ref=e1046]: import * as React from "react"
+                  - generic [ref=e1048]: "import { Card, CardContent } from \"@/components/ui/card\""
+                  - generic [ref=e1049]: "import {"
+                  - generic [ref=e1050]: Carousel,
+                  - generic [ref=e1051]: CarouselContent,
+                  - generic [ref=e1052]: CarouselItem,
+                  - generic [ref=e1053]: CarouselNext,
+                  - generic [ref=e1054]: CarouselPrevious,
+                  - generic [ref=e1055]: "} from \"@/components/ui/carousel\""
+                  - generic [ref=e1057]: "export function CarouselSpacing() {"
+                  - generic [ref=e1058]: return (
+                  - generic [ref=e1059]: <Carousel className="w-full max-w-[12rem] sm:max-w-xs md:max-w-sm">
+                  - generic [ref=e1060]: <CarouselContent className="-ml-1">
+                  - generic [ref=e1061]: "{Array.from({ length: 5 }).map((_, index) => ("
+                  - generic [ref=e1062]: "<CarouselItem key={index} className=\"basis-1/2 pl-1 lg:basis-1/3\">"
+                  - generic [ref=e1063]: <div className="p-1">
+                  - generic [ref=e1064]: <Card>
+                  - generic [ref=e1065]: <CardContent className="flex aspect-square items-center justify-center p-6">
+                  - generic [ref=e1066]: "<span className=\"text-2xl font-semibold\">{index + 1}</span>"
+                  - generic [ref=e1067]: </CardContent>
+                  - generic [ref=e1068]: </Card>
+                  - generic [ref=e1069]: </div>
+                  - generic [ref=e1070]: </CarouselItem>
+                  - generic [ref=e1071]: "))}"
+                  - generic [ref=e1072]: </CarouselContent>
+                  - generic [ref=e1073]: <CarouselPrevious />
+                  - generic [ref=e1074]: <CarouselNext />
+                  - generic [ref=e1075]: </Carousel>
+                  - generic [ref=e1076]: )
+                  - generic [ref=e1077]: "}"
+            - figure [ref=e592]:
+              - generic [ref=e593]:
+                - button "Copy" [ref=e594]:
+                  - generic [ref=e595]: Copy
+                  - img
+                - code [ref=e596]:
+                  - generic [ref=e597]: <Carousel>
+                  - generic [ref=e598]:
+                    - text: <CarouselContent className="
+                    - mark [ref=e599]: "-ml-4"
+                    - text: "\">"
+                  - generic [ref=e600]:
+                    - text: <CarouselItem className="
+                    - mark [ref=e601]: pl-4
+                    - text: "\">...</CarouselItem>"
+                  - generic [ref=e602]:
+                    - text: <CarouselItem className="
+                    - mark [ref=e603]: pl-4
+                    - text: "\">...</CarouselItem>"
+                  - generic [ref=e604]:
+                    - text: <CarouselItem className="
+                    - mark [ref=e605]: pl-4
+                    - text: "\">...</CarouselItem>"
+                  - generic [ref=e606]: </CarouselContent>
+                  - generic [ref=e607]: </Carousel>
+            - figure [ref=e608]:
+              - generic [ref=e609]:
+                - button "Copy" [ref=e610]:
+                  - generic [ref=e611]: Copy
+                  - img
+                - code [ref=e612]:
+                  - generic [ref=e613]: <Carousel>
+                  - generic [ref=e614]:
+                    - text: <CarouselContent className="
+                    - mark [ref=e615]: "-ml-2"
+                    - mark [ref=e616]: md:-ml-4
+                    - text: "\">"
+                  - generic [ref=e617]:
+                    - text: <CarouselItem className="
+                    - mark [ref=e618]: pl-2
+                    - mark [ref=e619]: md:pl-4
+                    - text: "\">...</CarouselItem>"
+                  - generic [ref=e620]:
+                    - text: <CarouselItem className="
+                    - mark [ref=e621]: pl-2
+                    - mark [ref=e622]: md:pl-4
+                    - text: "\">...</CarouselItem>"
+                  - generic [ref=e623]:
+                    - text: <CarouselItem className="
+                    - mark [ref=e624]: pl-2
+                    - mark [ref=e625]: md:pl-4
+                    - text: "\">...</CarouselItem>"
+                  - generic [ref=e626]: </CarouselContent>
+                  - generic [ref=e627]: </Carousel>
+            - heading "Orientation" [level=3] [ref=e628]
+            - paragraph [ref=e629]:
+              - text: Use the
+              - code [ref=e630]: orientation
+              - text: prop to set the orientation of the carousel.
+            - generic [ref=e631]:
+              - region [ref=e634]:
+                - generic [ref=e636]:
+                  - group [ref=e637]:
+                    - generic [ref=e641]: "1"
+                  - group [ref=e642]:
+                    - generic [ref=e646]: "2"
+                  - group [ref=e647]:
+                    - generic [ref=e651]: "3"
+                  - group [ref=e652]:
+                    - generic [ref=e656]: "4"
+                  - group [ref=e657]:
+                    - generic [ref=e661]: "5"
+                - button "Previous slide" [disabled]:
+                  - img
+                  - generic: Previous slide
+                - button "Next slide" [ref=e983]:
+                  - img
+                  - generic [ref=e984]: Next slide
+              - generic [ref=e663]:
+                - figure [ref=e665]:
+                  - code [ref=e668]:
+                    - generic [ref=e669]: import * as React from "react"
+                    - generic [ref=e671]: "import { Card, CardContent } from \"@/components/ui/card\""
+                - button "View Code" [ref=e674]
+            - figure [ref=e675]:
+              - generic [ref=e676]:
+                - button "Copy" [ref=e677]:
+                  - generic [ref=e678]: Copy
+                  - img
+                - code [ref=e679]:
+                  - generic [ref=e680]:
+                    - text: <Carousel orientation="
+                    - mark [ref=e681]: vertical | horizontal
+                    - text: "\">"
+                  - generic [ref=e682]: <CarouselContent>
+                  - generic [ref=e683]: <CarouselItem>...</CarouselItem>
+                  - generic [ref=e684]: <CarouselItem>...</CarouselItem>
+                  - generic [ref=e685]: <CarouselItem>...</CarouselItem>
+                  - generic [ref=e686]: </CarouselContent>
+                  - generic [ref=e687]: </Carousel>
+            - heading "Options" [level=2] [ref=e688]
+            - paragraph [ref=e689]:
+              - text: You can pass options to the carousel using the
+              - code [ref=e690]: opts
+              - text: prop. See the
+              - link "Embla Carousel docs" [ref=e691] [cursor=pointer]:
+                - /url: https://www.embla-carousel.com/api/options/
+              - text: for more information.
+            - figure [ref=e692]:
+              - generic [ref=e693]:
+                - button "Copy" [ref=e694]:
+                  - generic [ref=e695]: Copy
+                  - img
+                - code [ref=e696]:
+                  - generic [ref=e697]: <Carousel
+                  - generic [ref=e698]: "opts={{"
+                  - generic [ref=e699]: "align: \"start\","
+                  - generic [ref=e700]: "loop: true,"
+                  - generic [ref=e701]: "}}"
+                  - generic [ref=e702]: ">"
+                  - generic [ref=e703]: <CarouselContent>
+                  - generic [ref=e704]: <CarouselItem>...</CarouselItem>
+                  - generic [ref=e705]: <CarouselItem>...</CarouselItem>
+                  - generic [ref=e706]: <CarouselItem>...</CarouselItem>
+                  - generic [ref=e707]: </CarouselContent>
+                  - generic [ref=e708]: </Carousel>
+            - heading "API" [level=2] [ref=e709]
+            - paragraph [ref=e710]:
+              - text: Use a state and the
+              - code [ref=e711]: setApi
+              - text: props to get an instance of the carousel API.
+            - generic [ref=e712]:
+              - generic [ref=e715]:
+                - region [ref=e716]:
+                  - generic [ref=e718]:
+                    - group [ref=e719]:
+                      - generic [ref=e722]: "1"
+                    - group [ref=e723]:
+                      - generic [ref=e726]: "2"
+                    - group [ref=e727]:
+                      - generic [ref=e730]: "3"
+                    - group [ref=e731]:
+                      - generic [ref=e734]: "4"
+                    - group [ref=e735]:
+                      - generic [ref=e738]: "5"
+                  - button "Previous slide" [disabled]:
+                    - img
+                    - generic: Previous slide
+                  - button "Next slide" [ref=e985]:
+                    - img
+                    - generic [ref=e986]: Next slide
+                - generic [ref=e739]: Slide 1 of 5
+              - generic [ref=e741]:
+                - figure [ref=e743]:
+                  - code [ref=e746]:
+                    - generic [ref=e747]: "\"use client\""
+                    - generic [ref=e749]: import * as React from "react"
+                - button "View Code" [ref=e752]
+            - figure [ref=e753]:
+              - generic [ref=e754]:
+                - button "Copy" [ref=e755]:
+                  - generic [ref=e756]: Copy
+                  - img
+                - code [ref=e757]:
+                  - generic [ref=e758]: "import { type CarouselApi } from \"@/components/ui/carousel\""
+                  - generic [ref=e760]: "export function Example() {"
+                  - generic [ref=e761]: const [api, setApi] = React.useState<CarouselApi>()
+                  - generic [ref=e762]: const [current, setCurrent] = React.useState(0)
+                  - generic [ref=e763]: const [count, setCount] = React.useState(0)
+                  - generic [ref=e765]: "React.useEffect(() => {"
+                  - generic [ref=e766]: "if (!api) {"
+                  - generic [ref=e767]: return
+                  - generic [ref=e768]: "}"
+                  - generic [ref=e770]: setCount(api.scrollSnapList().length)
+                  - generic [ref=e771]: setCurrent(api.selectedScrollSnap() + 1)
+                  - generic [ref=e773]: "api.on(\"select\", () => {"
+                  - generic [ref=e774]: setCurrent(api.selectedScrollSnap() + 1)
+                  - generic [ref=e775]: "})"
+                  - generic [ref=e776]: "}, [api])"
+                  - generic [ref=e778]: return (
+                  - generic [ref=e779]: "<Carousel setApi={setApi}>"
+                  - generic [ref=e780]: <CarouselContent>
+                  - generic [ref=e781]: <CarouselItem>...</CarouselItem>
+                  - generic [ref=e782]: <CarouselItem>...</CarouselItem>
+                  - generic [ref=e783]: <CarouselItem>...</CarouselItem>
+                  - generic [ref=e784]: </CarouselContent>
+                  - generic [ref=e785]: </Carousel>
+                  - generic [ref=e786]: )
+                  - generic [ref=e787]: "}"
+            - heading "Events" [level=2] [ref=e788]
+            - paragraph [ref=e789]:
+              - text: You can listen to events using the api instance from
+              - code [ref=e790]: setApi
+              - text: .
+            - figure [ref=e791]:
+              - generic [ref=e792]:
+                - button "Copy" [ref=e793]:
+                  - generic [ref=e794]: Copy
+                  - img
+                - code [ref=e795]:
+                  - generic [ref=e796]: "import { type CarouselApi } from \"@/components/ui/carousel\""
+                  - generic [ref=e798]: "export function Example() {"
+                  - generic [ref=e799]: const [api, setApi] = React.useState<CarouselApi>()
+                  - generic [ref=e801]: "React.useEffect(() => {"
+                  - generic [ref=e802]: "if (!api) {"
+                  - generic [ref=e803]: return
+                  - generic [ref=e804]: "}"
+                  - generic [ref=e806]: "api.on(\"select\", () => {"
+                  - generic [ref=e807]: // Do something on select.
+                  - generic [ref=e808]: "})"
+                  - generic [ref=e809]: "}, [api])"
+                  - generic [ref=e811]: return (
+                  - generic [ref=e812]: "<Carousel setApi={setApi}>"
+                  - generic [ref=e813]: <CarouselContent>
+                  - generic [ref=e814]: <CarouselItem>...</CarouselItem>
+                  - generic [ref=e815]: <CarouselItem>...</CarouselItem>
+                  - generic [ref=e816]: <CarouselItem>...</CarouselItem>
+                  - generic [ref=e817]: </CarouselContent>
+                  - generic [ref=e818]: </Carousel>
+                  - generic [ref=e819]: )
+                  - generic [ref=e820]: "}"
+            - paragraph [ref=e821]:
+              - text: See the
+              - link "Embla Carousel docs" [ref=e822] [cursor=pointer]:
+                - /url: https://www.embla-carousel.com/api/events/
+              - text: for more information on using events.
+            - heading "Plugins" [level=2] [ref=e823]
+            - paragraph [ref=e824]:
+              - text: You can use the
+              - code [ref=e825]: plugins
+              - text: prop to add plugins to the carousel.
+            - figure [ref=e826]:
+              - generic [ref=e827]:
+                - button "Copy" [ref=e828]:
+                  - generic [ref=e829]: Copy
+                  - img
+                - code [ref=e830]:
+                  - generic [ref=e831]: import Autoplay from "embla-carousel-autoplay"
+                  - generic [ref=e833]: "export function Example() {"
+                  - generic [ref=e834]: return (
+                  - generic [ref=e835]: <Carousel
+                  - generic [ref=e836]: "plugins={["
+                  - generic [ref=e837]: "Autoplay({"
+                  - generic [ref=e838]: "delay: 2000,"
+                  - generic [ref=e839]: "}),"
+                  - generic [ref=e840]: "]}"
+                  - generic [ref=e841]: ">"
+                  - generic [ref=e842]: // ...
+                  - generic [ref=e843]: </Carousel>
+                  - generic [ref=e844]: )
+                  - generic [ref=e845]: "}"
+            - generic [ref=e846]:
+              - region [ref=e849]:
+                - generic [ref=e851]:
+                  - group [ref=e852]:
+                    - generic [ref=e856]: "1"
+                  - group [ref=e857]:
+                    - generic [ref=e861]: "2"
+                  - group [ref=e862]:
+                    - generic [ref=e866]: "3"
+                  - group [ref=e867]:
+                    - generic [ref=e871]: "4"
+                  - group [ref=e872]:
+                    - generic [ref=e876]: "5"
+                - button "Previous slide" [ref=e987]:
+                  - img
+                  - generic [ref=e988]: Previous slide
+                - button "Next slide" [disabled]:
+                  - img
+                  - generic: Next slide
+              - generic [ref=e878]:
+                - figure [ref=e880]:
+                  - code [ref=e883]:
+                    - generic [ref=e884]: "\"use client\""
+                    - generic [ref=e886]: import * as React from "react"
+                - button "View Code" [ref=e889]
+            - heading "RTL" [level=2] [ref=e890]
+            - paragraph [ref=e891]:
+              - text: To enable RTL support in shadcn/ui, see the
+              - link "RTL configuration guide" [ref=e892] [cursor=pointer]:
+                - /url: /docs/rtl
+              - text: .
+            - generic [ref=e893]:
+              - generic [ref=e894]:
+                - combobox [ref=e895]:
+                  - generic [ref=e896]: Arabic (العربية)
+                  - img: ▼
+                - textbox [ref=e897]: ar
+                - button "Toggle" [ref=e898]:
+                  - img
+                  - generic [ref=e899]: Toggle
+              - region [ref=e902]:
+                - generic [ref=e904]:
+                  - group [ref=e905]:
+                    - generic [ref=e909]: ١
+                  - group [ref=e910]:
+                    - generic [ref=e914]: ٢
+                  - group [ref=e915]:
+                    - generic [ref=e919]: ٣
+                  - group [ref=e920]:
+                    - generic [ref=e924]: ٤
+                  - group [ref=e925]:
+                    - generic [ref=e929]: ٥
+                - button "Previous slide" [disabled]:
+                  - img
+                  - generic: Previous slide
+                - button "Next slide" [ref=e991]:
+                  - img
+                  - generic [ref=e992]: Next slide
+              - generic [ref=e931]:
+                - figure [ref=e933]:
+                  - code [ref=e936]:
+                    - generic [ref=e937]: "\"use client\""
+                    - generic [ref=e939]: "import {"
+                - button "View Code" [ref=e942]
+            - paragraph [ref=e943]:
+              - text: When localizing the carousel for RTL languages, you need to set the
+              - code [ref=e944]: direction
+              - text: option in the
+              - code [ref=e945]: opts
+              - text: prop to match the text direction. This ensures the carousel scrolls in the correct direction.
+            - figure [ref=e946]:
+              - generic [ref=e947]:
+                - button "Copy" [ref=e948]:
+                  - generic [ref=e949]: Copy
+                  - img
+                - code [ref=e950]:
+                  - generic [ref=e951]: <Carousel
+                  - generic [ref=e952]: "dir={dir}"
+                  - generic [ref=e953]: "opts={{"
+                  - generic [ref=e954]: "direction: dir,"
+                  - generic [ref=e955]: "}}"
+                  - generic [ref=e956]: ">"
+                  - generic [ref=e957]: <CarouselContent>
+                  - generic [ref=e958]: <CarouselItem>...</CarouselItem>
+                  - generic [ref=e959]: <CarouselItem>...</CarouselItem>
+                  - generic [ref=e960]: <CarouselItem>...</CarouselItem>
+                  - generic [ref=e961]: </CarouselContent>
+                  - generic [ref=e962]: <CarouselPrevious className="rtl:rotate-180" />
+                  - generic [ref=e963]: <CarouselNext className="rtl:rotate-180" />
+                  - generic [ref=e964]: </Carousel>
+            - paragraph [ref=e965]:
+              - text: The
+              - code [ref=e966]: direction
+              - text: option accepts
+              - code [ref=e967]: "\"ltr\""
+              - text: or
+              - code [ref=e968]: "\"rtl\""
+              - text: and should match the
+              - code [ref=e969]: dir
+              - text: prop value. You may also want to rotate the navigation buttons using the
+              - code [ref=e970]: rtl:rotate-180
+              - text: class to ensure they point in the correct direction.
+            - heading "API Reference" [level=2] [ref=e971]
+            - paragraph [ref=e972]:
+              - text: See the
+              - link "Embla Carousel docs" [ref=e973] [cursor=pointer]:
+                - /url: https://www.embla-carousel.com/api/
+              - text: for more information on props and plugins.
+          - generic [ref=e974]:
+            - link "Card" [ref=e975] [cursor=pointer]:
+              - /url: /docs/components/radix/card
+              - img
+              - text: Card
+            - link "Chart" [ref=e976] [cursor=pointer]:
+              - /url: /docs/components/radix/chart
+              - text: Chart
+              - img
+  - region "Notifications alt+T"
+  - alert [ref=e993]
