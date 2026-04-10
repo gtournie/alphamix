@@ -1,1 +1,0 @@
-import{p as a,w as t,c as r}from"./iframe-B6Xu6Fgz.js";import{n as u}from"./noop-DX6rZLP_.js";import{o as f}from"./on-mount-effect.svelte-CyqCpUzU.js";function M(m,o){a(o,!0);let e=t(o,"mounted",15,!1),n=t(o,"onMountedChange",3,u);f(()=>(e(!0),n()(!0),()=>{e(!1),n()(!1)})),r()}export{M};

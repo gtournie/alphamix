@@ -1,0 +1,127 @@
+- generic [ref=e3]:
+  - generic [ref=e4]:
+    - banner "Storybook" [ref=e6]:
+      - heading "Storybook" [level=1] [ref=e7]
+      - img
+      - generic [ref=e11]:
+        - generic [ref=e13]:
+          - link "Skip to content" [ref=e14] [cursor=pointer]:
+            - /url: "#storybook-preview-wrapper"
+          - link "Storybook" [ref=e16] [cursor=pointer]:
+            - /url: ./
+            - img "Storybook" [ref=e17]
+          - switch "Settings" [ref=e22] [cursor=pointer]:
+            - img [ref=e23]
+        - generic [ref=e26]: Search for components
+        - search [ref=e27]:
+          - combobox "Search for components" [ref=e28]:
+            - generic:
+              - img
+            - searchbox "Search for components" [ref=e29]
+            - code:
+              - generic: ⌘
+              - text: K
+            - button "Tag filters" [ref=e31] [cursor=pointer]:
+              - img [ref=e32]
+        - navigation "Stories" [ref=e35]:
+          - heading "Stories" [level=2] [ref=e36]
+          - generic [ref=e38]:
+            - generic [ref=e39]:
+              - button "Collapse" [expanded] [ref=e40] [cursor=pointer]:
+                - img [ref=e42]
+                - text: UI
+              - button "Expand all" [ref=e44] [cursor=pointer]:
+                - img [ref=e45]
+            - button "Badge" [ref=e48] [cursor=pointer]:
+              - generic [ref=e49]:
+                - img [ref=e51]
+                - img [ref=e53]
+              - text: Badge
+            - button "Button" [ref=e56] [cursor=pointer]:
+              - generic [ref=e57]:
+                - img [ref=e59]
+                - img [ref=e61]
+              - text: Button
+            - button "Card" [expanded] [ref=e64] [cursor=pointer]:
+              - generic [ref=e65]:
+                - img [ref=e67]
+                - img [ref=e69]
+              - text: Card
+            - generic [ref=e71]:
+              - link "Default" [ref=e72] [cursor=pointer]:
+                - /url: /?path=/story/ui-card--default
+                - img [ref=e74]
+                - text: Default
+              - link "Skip to content" [ref=e76] [cursor=pointer]:
+                - /url: "#storybook-preview-wrapper"
+            - link "Simple" [ref=e78] [cursor=pointer]:
+              - /url: /?path=/story/ui-card--simple
+              - img [ref=e80]
+              - text: Simple
+            - button "Input" [ref=e83] [cursor=pointer]:
+              - generic [ref=e84]:
+                - img [ref=e86]
+                - img [ref=e88]
+              - text: Input
+            - button "Separator" [ref=e91] [cursor=pointer]:
+              - generic [ref=e92]:
+                - img [ref=e94]
+                - img [ref=e96]
+              - text: Separator
+    - separator "Sidebar resize handle" [ref=e98]
+  - generic [ref=e100]:
+    - region "Toolbar" [ref=e101]:
+      - heading "Toolbar" [level=2] [ref=e102]
+      - toolbar [ref=e103]:
+        - generic [ref=e104]:
+          - button "Reload story" [ref=e105] [cursor=pointer]:
+            - img [ref=e106]
+          - switch "Measure tool" [ref=e108] [cursor=pointer]:
+            - img [ref=e109]
+          - switch "Outline tool" [ref=e112] [cursor=pointer]:
+            - img [ref=e113]
+          - button "Viewport size" [ref=e115] [cursor=pointer]:
+            - img [ref=e116]
+        - generic [ref=e120]:
+          - switch "Change zoom level" [ref=e121] [cursor=pointer]: 100%
+          - button "Enter full screen" [ref=e122] [cursor=pointer]:
+            - img [ref=e123]
+          - button "Share" [ref=e125] [cursor=pointer]:
+            - img [ref=e126]
+          - button "Open in editor" [ref=e129] [cursor=pointer]:
+            - img [ref=e130]
+    - main "Main preview area" [ref=e133]:
+      - heading "Main preview area" [level=2] [ref=e134]
+      - generic [ref=e135]:
+        - progressbar "Content is loading..." [ref=e137]
+        - generic [ref=e138]:
+          - link "Skip to sidebar" [ref=e139] [cursor=pointer]:
+            - /url: "#ui-card--default"
+          - iframe [ref=e143]:
+            - generic [ref=f2e3]:
+              - generic [ref=f2e4]:
+                - generic [ref=f2e5]: Titre de la carte
+                - paragraph [ref=f2e6]: Une description courte et informative.
+              - paragraph [ref=f2e8]: Contenu principal de la carte.
+              - generic [ref=f2e9]:
+                - button "Annuler" [ref=f2e10]
+                - button "Confirmer" [ref=f2e11]
+  - generic [ref=e144]:
+    - separator "Addon panel resize handle" [ref=e145]
+    - region "Addon panel" [ref=e147]:
+      - heading "Addon panel" [level=2] [ref=e148]
+      - generic [ref=e149]:
+        - generic [ref=e150]:
+          - generic [ref=e151]:
+            - button "Move addon panel to right" [ref=e152] [cursor=pointer]:
+              - img [ref=e153]
+            - button "Hide addon panel" [ref=e156] [cursor=pointer]:
+              - img [ref=e157]
+          - tablist "Available addons" [ref=e162]:
+            - tab "Controls" [selected] [ref=e163] [cursor=pointer]:
+              - generic [ref=e165]: Controls
+            - tab "Actions" [ref=e166] [cursor=pointer]:
+              - generic [ref=e168]: Actions
+            - tab "Interactions" [ref=e169] [cursor=pointer]:
+              - generic [ref=e171]: Interactions
+        - tabpanel "Controls" [ref=e172]

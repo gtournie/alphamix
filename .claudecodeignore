@@ -1,0 +1,6 @@
+# Build artifacts & dependencies
+node_modules/
+bun.lock
+
+# Game scripts directory (large/generated content)
+game-with-scripts/

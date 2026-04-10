@@ -1,1 +1,0 @@
-const s="ArrowDown",o="ArrowLeft",n="ArrowRight",t="ArrowUp",c="End",a="Enter",A="Escape",E="Home",R="PageDown",r="PageUp",P=" ",e="Tab",O="p",p="n",w="j",T="k",W="h",_="l";export{s as A,c as E,E as H,r as P,P as S,e as T,n as a,t as b,o as c,a as d,R as e,A as f,W as h,w as j,T as k,_ as l,p as n,O as p};
