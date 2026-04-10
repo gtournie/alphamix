@@ -1,0 +1,60 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Build output
+dist/
+build/
+.svelte-kit/
+storybook-static/
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+debug-*.log
+
+# Cache
+.cache/
+.vite/
+.turbo/
+.eslintcache
+.stylelintcache
+
+# Testing
+coverage/
+.nyc_output/
+
+# Environment
+.env
+.env.*
+!.env.example
+
+# Editor / OS
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+
+# IDE — keep shared configs, ignore user-specific ones
+.idea/
+*.sublime-workspace
+*.sublime-project
+.history
+
+# Lockfiles from other package managers (project uses bun)
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# Storybook
+!.storybook/
+
+# Claude / tooling artifacts
+.claude/vigil/
