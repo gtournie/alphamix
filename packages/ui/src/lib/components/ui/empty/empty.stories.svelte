@@ -149,7 +149,7 @@
 					</InputGroup.Addon>
 				</InputGroup.Root>
 				<Empty.Description>
-					Need help? <a href="#">Contact support</a>
+					Need help? <a href="#fake">Contact support</a>
 				</Empty.Description>
 			</Empty.Content>
 		</Empty.Root>

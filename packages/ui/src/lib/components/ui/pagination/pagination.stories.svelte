@@ -11,7 +11,7 @@
 	});
 </script>
 
-<script>
+<script lang="ts">
 	let rowsPerPage = $state("25");
 </script>
 
@@ -47,7 +47,7 @@
 		<div class="flex items-center gap-4">
 			<Field.Field orientation="horizontal" class="w-fit">
 				<Field.Label for="select-rows-per-page">Rows per page</Field.Label>
-				<Select.Root bind:value={rowsPerPage}>
+				<Select.Root type="single" bind:value={rowsPerPage}>
 					<Select.Trigger class="w-20" id="select-rows-per-page">
 						{rowsPerPage}
 					</Select.Trigger>

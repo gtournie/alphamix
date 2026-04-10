@@ -97,7 +97,7 @@
 						<Sidebar.MenuItem>
 							<Sidebar.MenuButton size="lg">
 								<UserIcon class="size-8 rounded-lg" />
-								<div class="grid flex-1 text-left text-sm leading-tight">
+								<div class="grid flex-1 text-left text-sm/tight ">
 									<span class="truncate font-semibold">Jane Doe</span>
 									<span class="truncate text-xs">jane@example.com</span>
 								</div>

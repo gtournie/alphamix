@@ -14,12 +14,12 @@
 		tags: ["autodocs"],
 		argTypes: {
 			size: { control: "select", options: ["default", "sm"] },
-		},
+		} as Record<string, any>,
 	});
 </script>
 
-<Story name="Basic" args={{ size: "default" }}>
-	{#snippet template(args)}
+<Story name="Basic" args={{ size: "default" } as Record<string, any>}>
+	{#snippet template(args: Record<string, any>)}
 		<AlertDialog.Root>
 			<AlertDialog.Trigger>
 				{#snippet child({ props })}
@@ -134,7 +134,7 @@
 					<AlertDialog.Title>Delete chat?</AlertDialog.Title>
 					<AlertDialog.Description>
 						This will permanently delete this chat conversation. View{" "}
-						<a href="/">Settings</a> delete any memories saved during this chat.
+						<a href="#fake">Settings</a> delete any memories saved during this chat.
 					</AlertDialog.Description>
 				</AlertDialog.Header>
 				<AlertDialog.Footer>

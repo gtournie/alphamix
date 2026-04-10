@@ -111,7 +111,7 @@
 
 <Story name="Basic">
 	{#snippet template()}
-		<Calendar class="rounded-md border" />
+		<Calendar type="single" class="rounded-md border" />
 	{/snippet}
 </Story>
 
@@ -131,7 +131,7 @@
 
 <Story name="Month and Year Selector">
 	{#snippet template()}
-		<Calendar captionLayout="dropdown" class="rounded-md border" />
+		<Calendar type="single" captionLayout="dropdown" class="rounded-md border" />
 	{/snippet}
 </Story>
 
@@ -241,7 +241,8 @@
 				})}
 					{dayLabel}
 					{#if !outsideMonth}
-						<span>{d.dayOfWeek >= 6 ? "$120" : "$100"}</span>
+						{@const dow = new Date(d.year, d.month - 1, d.day).getDay()}
+						<span>{dow === 0 || dow === 6 ? "$120" : "$100"}</span>
 					{/if}
 				{/snippet}
 			</RangeCalendarDay>

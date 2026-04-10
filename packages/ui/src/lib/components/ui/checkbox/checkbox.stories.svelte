@@ -21,7 +21,7 @@
 	});
 </script>
 
-<script>
+<script lang="ts">
 	const tableData = [
 		{
 			id: "1",
@@ -54,11 +54,11 @@
 		selectedRows.size > 0 && selectedRows.size < tableData.length,
 	);
 
-	function handleSelectAll(checked) {
+	function handleSelectAll(checked: boolean | "indeterminate") {
 		selectedRows = checked ? new Set(tableData.map((r) => r.id)) : new Set();
 	}
 
-	function handleSelectRow(id, checked) {
+	function handleSelectRow(id: string, checked: boolean) {
 		const next = new Set(selectedRows);
 		if (checked) next.add(id);
 		else next.delete(id);

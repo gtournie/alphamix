@@ -3,7 +3,7 @@
 	import * as HoverCard from "$lib/components/ui/hover-card/index.js";
 	import { Button } from "$lib/components/ui/button/index.js";
 
-	const sides = /** @type {const} */ (["left", "top", "bottom", "right"]);
+	const sides = ["left", "top", "bottom", "right"] as const;
 
 	const { Story } = defineMeta({
 		title: "UI/HoverCard",

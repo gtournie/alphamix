@@ -16,7 +16,7 @@
 	{#snippet template()}
 		<Field.Field orientation="horizontal" class="max-w-sm">
 			<Field.Content>
-				<Field.Label id="switch-focus-mode-label" htmlFor="switch-focus-mode">
+				<Field.Label id="switch-focus-mode-label" for="switch-focus-mode">
 					Share across devices
 				</Field.Label>
 				<Field.Description>
@@ -34,7 +34,7 @@
 <Story name="Choice Card">
 	{#snippet template()}
 		<Field.Group class="w-full max-w-sm">
-			<Field.Label htmlFor="switch-share">
+			<Field.Label for="switch-share">
 				<Field.Field orientation="horizontal">
 					<Field.Content>
 						<Field.Title id="switch-share-title">
@@ -48,7 +48,7 @@
 					<Switch id="switch-share" aria-labelledby="switch-share-title" />
 				</Field.Field>
 			</Field.Label>
-			<Field.Label htmlFor="switch-notifications">
+			<Field.Label for="switch-notifications">
 				<Field.Field orientation="horizontal">
 					<Field.Content>
 						<Field.Title id="switch-notifications-title">
@@ -79,7 +79,7 @@
 			/>
 			<Field.Label
 				id="switch-disabled-label"
-				htmlFor="switch-disabled-unchecked"
+				for="switch-disabled-unchecked"
 			>
 				Disabled
 			</Field.Label>
@@ -91,7 +91,7 @@
 	{#snippet template()}
 		<Field.Field orientation="horizontal" class="max-w-sm" data-invalid>
 			<Field.Content>
-				<Field.Label id="switch-terms-label" htmlFor="switch-terms">
+				<Field.Label id="switch-terms-label" for="switch-terms">
 					Accept terms and conditions
 				</Field.Label>
 				<Field.Description>
@@ -109,14 +109,14 @@
 
 <Story name="Size">
 	{#snippet template()}
-		<Field.Group class="w-full max-w-[10rem]">
+		<Field.Group class="w-full max-w-40">
 			<Field.Field orientation="horizontal">
 				<Switch
 					id="switch-size-sm"
 					size="sm"
 					aria-labelledby="switch-size-sm-label"
 				/>
-				<Field.Label id="switch-size-sm-label" htmlFor="switch-size-sm">
+				<Field.Label id="switch-size-sm-label" for="switch-size-sm">
 					Small
 				</Field.Label>
 			</Field.Field>
@@ -128,7 +128,7 @@
 				/>
 				<Field.Label
 					id="switch-size-default-label"
-					htmlFor="switch-size-default"
+					for="switch-size-default"
 				>
 					Default
 				</Field.Label>

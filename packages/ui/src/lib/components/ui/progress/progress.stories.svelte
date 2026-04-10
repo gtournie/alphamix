@@ -10,7 +10,7 @@
 	});
 </script>
 
-<script>
+<script lang="ts">
 	let controlledValue = $state(66);
 </script>
 
@@ -43,11 +43,12 @@
 				aria-labelledby="progress-label-controlled"
 			/>
 			<Slider
+				type="single"
 				min={0}
 				max={100}
 				step={1}
-				value={[controlledValue]}
-				onValueChange={(v) => (controlledValue = v[0])}
+				value={controlledValue}
+				onValueChange={(v: number) => (controlledValue = v)}
 				aria-label="Adjust progress value"
 				thumbAriaLabel="Progress value"
 			/>

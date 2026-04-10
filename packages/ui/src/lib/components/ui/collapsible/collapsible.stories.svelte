@@ -69,6 +69,8 @@
 		{ name: ".gitignore" },
 	];
 
+	type FileTreeItem = { name: string; items?: FileTreeItem[] };
+
 	const { Story } = defineMeta({
 		title: "UI/Collapsible",
 		component: Collapsible.Root,
@@ -76,7 +78,7 @@
 	});
 </script>
 
-<script>
+<script lang="ts">
 	let isOpen = $state(false);
 </script>
 
@@ -159,8 +161,7 @@
 	{/snippet}
 </Story>
 
-<Story name="File Tree">
-	{#snippet renderItem(item)}
+{#snippet renderItem(item: FileTreeItem)}
 		{#if "items" in item}
 			<Collapsible.Root>
 				<Collapsible.Trigger
@@ -195,7 +196,9 @@
 				<span>{item.name}</span>
 			</Button>
 		{/if}
-	{/snippet}
+{/snippet}
+
+<Story name="File Tree">
 	{#snippet template()}
 		<Card.Root class="mx-auto w-full max-w-[16rem] gap-2" size="sm">
 			<Card.Header>
