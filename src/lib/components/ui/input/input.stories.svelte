@@ -16,8 +16,8 @@
 	});
 </script>
 
-<script>
-	const countryLabels = { us: "United States", uk: "United Kingdom", ca: "Canada" };
+<script lang="ts">
+	const countryLabels: Record<string, string> = { us: "United States", uk: "United Kingdom", ca: "Canada" };
 	let formCountry = $state("us");
 </script>
 

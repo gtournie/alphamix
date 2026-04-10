@@ -64,6 +64,21 @@ Règles à toujours respecter dans les composants **et** les stories :
 - **`text-muted-foreground`** → ne jamais ajouter d'opacité (`/50`, `/30`…) car le token est calibré pour 4.5:1 sur `bg-muted`
 - **Calendar/RangeCalendar headers** → `role="presentation"` sur le `<header>` (évite landmark-banner-is-top-level)
 
+## Tailwind class linting
+
+Après chaque ajout ou modification de classes Tailwind dans un fichier `.svelte`, lancer :
+```bash
+npx eslint <fichiers-modifiés>
+```
+
+Le plugin `eslint-plugin-better-tailwindcss` détecte :
+- classes non canoniques (`data-[inset]:pl-8` → `data-inset:pl-8`)
+- classes en doublon
+- classes en conflit
+- shorthands manquants (`px-4 py-4` → `p-4`)
+
+Appliquer les fixes avec `--fix` ou manuellement. Ne pas ignorer les warnings.
+
 ## Storybook
 
 - Dev server: `bun run dev` (port 6006)
@@ -88,6 +103,10 @@ If tests fail with `TypeError: Cannot read properties of undefined (reading 'cal
 3. Re-run `bun run test` — the cache rebuilds consistently on the first run, passes on the second.
 
 **Do NOT use `optimizeDeps.force: true`** — it forces re-optimization on every start, which causes the Vitest runner itself to load from two different cache versions and breaks the test suite entirely.
+
+## Playwright MCP
+
+Après avoir fini d'utiliser le navigateur Playwright (screenshots, snapshots, vérifications visuelles), **toujours fermer la page** avec `browser_close`. Ne pas laisser de navigateur ouvert en arrière-plan.
 
 ## ⛔ Actions interdites
 

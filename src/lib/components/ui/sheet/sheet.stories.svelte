@@ -3,7 +3,7 @@
 	import * as Sheet from "$lib/components/ui/sheet/index.js";
 	import { Button } from "$lib/components/ui/button/index.js";
 
-	const sides = /** @type {const} */ (["top", "right", "bottom", "left"]);
+	const sides = ["top", "right", "bottom", "left"] as const;
 
 	const { Story } = defineMeta({
 		title: "UI/Sheet",
@@ -12,13 +12,13 @@
 	});
 </script>
 
-<script>
-	let sideOpen = $state(/** @type {Record<typeof sides[number], boolean>} */ ({
+<script lang="ts">
+	let sideOpen = $state<Record<(typeof sides)[number], boolean>>({
 		top: false,
 		right: false,
 		bottom: false,
 		left: false,
-	}));
+	});
 </script>
 
 <Story name="Side">

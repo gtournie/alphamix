@@ -87,6 +87,7 @@
 				Set your budget range (${sliderValue[0]} – ${sliderValue[1]}).
 			</Field.FieldDescription>
 			<Slider
+				type="multiple"
 				bind:value={sliderValue}
 				max={1000}
 				min={0}

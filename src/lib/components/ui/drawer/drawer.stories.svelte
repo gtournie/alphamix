@@ -7,7 +7,7 @@
 	import { Label } from "$lib/components/ui/label/index.js";
 	import { cn } from "$lib/utils.js";
 
-	const sides = /** @type {const} */ (["top", "right", "bottom", "left"]);
+	const sides = ["top", "right", "bottom", "left"] as const;
 
 	const { Story } = defineMeta({
 		title: "UI/Drawer",
@@ -23,10 +23,10 @@
 	});
 </script>
 
-<script>
+<script lang="ts">
 	let scrollableOpen = $state(false);
 
-	let sidesOpen = $state(/** @type {Record<string, boolean>} */ ({}));
+	let sidesOpen = $state<Record<string, boolean>>({});
 
 	let responsiveOpen = $state(false);
 	let isDesktop = $state(false);
@@ -35,7 +35,7 @@
 		if (typeof window === "undefined") return;
 		const mq = window.matchMedia("(min-width: 768px)");
 		isDesktop = mq.matches;
-		const handler = (/** @type {MediaQueryListEvent} */ e) =>
+		const handler = (e: MediaQueryListEvent) =>
 			(isDesktop = e.matches);
 		mq.addEventListener("change", handler);
 		return () => mq.removeEventListener("change", handler);

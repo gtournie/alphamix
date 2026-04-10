@@ -68,7 +68,8 @@
 	let dobOpen = $state(false);
 
 	// Input
-	let inputDate = $state<DateValue | undefined>(new CalendarDate(year, 6, 1));
+	const initialInputDate = new CalendarDate(year, 6, 1);
+	let inputDate = $state<DateValue | undefined>(initialInputDate);
 	let inputOpen = $state(false);
 
 	function formatDateLong(date: DateValue | undefined) {
@@ -83,7 +84,7 @@
 	// inputValue is kept in sync manually: calendar writes via onValueChange,
 	// text input writes via handleInputChange. Not $derived because the user
 	// can freely type without an immediate calendar selection.
-	let inputValue = $state(formatDateLong(inputDate));
+	let inputValue = $state(formatDateLong(initialInputDate));
 
 	function handleInputChange(raw: string) {
 		inputValue = raw;

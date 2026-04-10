@@ -59,7 +59,7 @@
 								<NavigationMenu.Link href="/docs">
 									<div class="space-y-1">
 										<div class="text-sm leading-none font-medium">Introduction</div>
-										<p class="text-muted-foreground line-clamp-2 text-sm leading-snug">
+										<p class="text-muted-foreground line-clamp-2 text-sm/snug ">
 											Re-usable components built with Tailwind CSS.
 										</p>
 									</div>
@@ -69,7 +69,7 @@
 								<NavigationMenu.Link href="/docs/installation">
 									<div class="space-y-1">
 										<div class="text-sm leading-none font-medium">Installation</div>
-										<p class="text-muted-foreground line-clamp-2 text-sm leading-snug">
+										<p class="text-muted-foreground line-clamp-2 text-sm/snug ">
 											How to install dependencies and structure your app.
 										</p>
 									</div>
@@ -79,7 +79,7 @@
 								<NavigationMenu.Link href="/docs/primitives/typography">
 									<div class="space-y-1">
 										<div class="text-sm leading-none font-medium">Typography</div>
-										<p class="text-muted-foreground line-clamp-2 text-sm leading-snug">
+										<p class="text-muted-foreground line-clamp-2 text-sm/snug ">
 											Styles for headings, paragraphs, lists...etc
 										</p>
 									</div>
@@ -99,7 +99,7 @@
 											<div class="text-sm leading-none font-medium">
 												{component.title}
 											</div>
-											<p class="text-muted-foreground line-clamp-2 text-sm leading-snug">
+											<p class="text-muted-foreground line-clamp-2 text-sm/snug ">
 												{component.description}
 											</p>
 										</div>

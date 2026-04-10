@@ -9,4 +9,4 @@
 	}: SelectPrimitive.RootProps = $props();
 </script>
 
-<SelectPrimitive.Root bind:open bind:value={value as never} {type} {...restProps} />
+<SelectPrimitive.Root bind:open bind:value={value as never} type={type as any} {...restProps} />

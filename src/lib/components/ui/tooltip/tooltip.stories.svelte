@@ -5,7 +5,7 @@
 	import { Kbd } from "$lib/components/ui/kbd/index.js";
 	import SaveIcon from "@lucide/svelte/icons/save";
 
-	const sides = /** @type {const} */ (["left", "top", "bottom", "right"]);
+	const sides = ["left", "top", "bottom", "right"] as const;
 
 	const { Story } = defineMeta({
 		title: "UI/Tooltip",

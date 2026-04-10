@@ -22,7 +22,7 @@
 		<Breadcrumb.Root {...args}>
 			<Breadcrumb.List>
 				<Breadcrumb.Item>
-					<Breadcrumb.Link href="/">Home</Breadcrumb.Link>
+					<Breadcrumb.Link href="#fake">Home</Breadcrumb.Link>
 				</Breadcrumb.Item>
 				<Breadcrumb.Separator />
 				<Breadcrumb.Item>
@@ -42,7 +42,7 @@
 		<Breadcrumb.Root {...args}>
 			<Breadcrumb.List>
 				<Breadcrumb.Item>
-					<Breadcrumb.Link href="/">Home</Breadcrumb.Link>
+					<Breadcrumb.Link href="#fake">Home</Breadcrumb.Link>
 				</Breadcrumb.Item>
 				<Breadcrumb.Separator>
 					<DotIcon />
@@ -66,7 +66,7 @@
 		<Breadcrumb.Root {...args}>
 			<Breadcrumb.List>
 				<Breadcrumb.Item>
-					<Breadcrumb.Link href="/">Home</Breadcrumb.Link>
+					<Breadcrumb.Link href="#fake">Home</Breadcrumb.Link>
 				</Breadcrumb.Item>
 				<Breadcrumb.Separator>
 					<DotIcon />
@@ -100,7 +100,7 @@
 		<Breadcrumb.Root {...args}>
 			<Breadcrumb.List>
 				<Breadcrumb.Item>
-					<Breadcrumb.Link href="/">Home</Breadcrumb.Link>
+					<Breadcrumb.Link href="#fake">Home</Breadcrumb.Link>
 				</Breadcrumb.Item>
 				<Breadcrumb.Separator />
 				<Breadcrumb.Item>
@@ -126,7 +126,7 @@
 				<Breadcrumb.Item>
 					<Breadcrumb.Link>
 						{#snippet child({ props })}
-							<a href="/" {...props}>Home</a>
+							<a href="#fake" {...props}>Home</a>
 						{/snippet}
 					</Breadcrumb.Link>
 				</Breadcrumb.Item>

@@ -76,7 +76,7 @@
 				<Switch id="align-item" bind:checked={alignItemWithTrigger} />
 			</Field.Field>
 			<Field.Field>
-				<Select.Root bind:value={alignFruit}>
+				<Select.Root type="single" bind:value={alignFruit}>
 					<Select.Trigger>
 						{fruitLabels[alignFruit] ?? "Select a fruit"}
 					</Select.Trigger>
@@ -97,7 +97,7 @@
 
 <Story name="Groups">
 	{#snippet template()}
-		<Select.Root bind:value={groupFruit}>
+		<Select.Root type="single" bind:value={groupFruit}>
 			<Select.Trigger class="w-full max-w-48">
 				{groupItemLabels[groupFruit] ?? "Select a fruit"}
 			</Select.Trigger>
@@ -122,7 +122,7 @@
 
 <Story name="Scrollable">
 	{#snippet template()}
-		<Select.Root bind:value={timezone}>
+		<Select.Root type="single" bind:value={timezone}>
 			<Select.Trigger class="w-full max-w-64">
 				{timezoneLabels[timezone] ?? "Select a timezone"}
 			</Select.Trigger>
@@ -176,7 +176,7 @@
 
 <Story name="Disabled">
 	{#snippet template()}
-		<Select.Root disabled>
+		<Select.Root type="single" disabled>
 			<Select.Trigger class="w-full max-w-48">Select a fruit</Select.Trigger>
 			<Select.Content>
 				<Select.Group>
@@ -195,7 +195,7 @@
 	{#snippet template()}
 		<Field.Field data-invalid="true" class="w-full max-w-48">
 			<Field.Label>Fruit</Field.Label>
-			<Select.Root>
+			<Select.Root type="single">
 				<Select.Trigger aria-invalid="true">Select a fruit</Select.Trigger>
 				<Select.Content>
 					<Select.Group>

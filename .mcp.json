@@ -40,7 +40,9 @@
       "command": "npx",
       "args": [
         "-y",
-        "@playwright/mcp@latest"
+        "@playwright/mcp@latest",
+        "--headless",
+        "--disable-features=Translate"
       ]
     },
     "fetch": {

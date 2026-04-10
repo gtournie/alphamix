@@ -5,6 +5,8 @@
 	import * as Field from "$lib/components/ui/field/index.js";
 	import { Input } from "$lib/components/ui/input/index.js";
 
+	const aligns = ["start", "center", "end"] as const;
+
 	const { Story } = defineMeta({
 		title: "UI/Popover",
 		component: Popover.Root,
@@ -35,7 +37,7 @@
 <Story name="Align">
 	{#snippet template()}
 		<div class="flex flex-wrap gap-4">
-			{#each ["start", "center", "end"] as align}
+			{#each aligns as align}
 				<Popover.Root>
 					<Popover.Trigger>
 						{#snippet child({ props })}

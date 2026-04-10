@@ -73,12 +73,12 @@
 	});
 </script>
 
-<script>
+<script lang="ts">
 	let basicOpen = $state(false);
 	let basicValue = $state("");
 
 	let multipleOpen = $state(false);
-	let multipleValues = $state(/** @type {string[]} */ ([]));
+	let multipleValues = $state<string[]>([]);
 
 	let clearOpen = $state(false);
 	let clearValue = $state(frameworks[0]);
@@ -97,15 +97,15 @@
 
 	let autoOpen = $state(false);
 	let autoSelected = $state("Next.js");
-	let autoHighlight = $state(autoSelected);
+	let autoHighlight = $state("Next.js");
 
 	let objectValueOpen = $state(false);
-	let objectValue = $state(/** @type {typeof countries[0] | null} */ (null));
+	let objectValue = $state<(typeof countries)[number] | null>(null);
 
 	let addonOpen = $state(false);
 	let addonValue = $state("");
 
-	function toggleMultiple(value) {
+	function toggleMultiple(value: string) {
 		if (multipleValues.includes(value)) {
 			multipleValues = multipleValues.filter((v) => v !== value);
 		} else {
@@ -127,7 +127,10 @@
 						{...props}
 					>
 						{basicValue || "Select a framework"}
-						<ChevronsUpDownIcon class="ml-2 size-4 shrink-0 opacity-50" aria-hidden="true" />
+						<ChevronsUpDownIcon
+							class="ml-2 size-4 shrink-0 opacity-50"
+							aria-hidden="true"
+						/>
 					</Button>
 				{/snippet}
 			</Popover.Trigger>
@@ -150,8 +153,8 @@
 											"mr-2 size-4",
 											basicValue === fw ? "opacity-100" : "opacity-0",
 										)}
-									aria-hidden="true"
-								/>
+										aria-hidden="true"
+									/>
 									{fw}
 								</Command.Item>
 							{/each}
@@ -178,7 +181,10 @@
 						{multipleValues.length > 0
 							? `${multipleValues.length} selected`
 							: "Select frameworks"}
-						<ChevronsUpDownIcon class="ml-2 size-4 shrink-0 opacity-50" aria-hidden="true" />
+						<ChevronsUpDownIcon
+							class="ml-2 size-4 shrink-0 opacity-50"
+							aria-hidden="true"
+						/>
 					</Button>
 				{/snippet}
 			</Popover.Trigger>
@@ -195,8 +201,8 @@
 											"mr-2 size-4",
 											multipleValues.includes(fw) ? "opacity-100" : "opacity-0",
 										)}
-									aria-hidden="true"
-								/>
+										aria-hidden="true"
+									/>
 									{fw}
 								</Command.Item>
 							{/each}
@@ -218,7 +224,10 @@
 						role="combobox"
 						tabindex="0"
 						aria-label="Select a framework"
-						class={cn(buttonVariants({ variant: "outline" }), "w-52 cursor-pointer justify-between font-normal")}
+						class={cn(
+							buttonVariants({ variant: "outline" }),
+							"w-52 cursor-pointer justify-between font-normal",
+						)}
 					>
 						<span class="truncate">{clearValue || "Select a framework"}</span>
 						<span class="ml-auto flex items-center gap-1">
@@ -235,7 +244,10 @@
 									<XIcon class="size-3" aria-hidden="true" />
 								</button>
 							{/if}
-							<ChevronsUpDownIcon class="size-4 opacity-50" aria-hidden="true" />
+							<ChevronsUpDownIcon
+								class="size-4 opacity-50"
+								aria-hidden="true"
+							/>
 						</span>
 					</div>
 				{/snippet}
@@ -259,8 +271,8 @@
 											"mr-2 size-4",
 											clearValue === fw ? "opacity-100" : "opacity-0",
 										)}
-									aria-hidden="true"
-								/>
+										aria-hidden="true"
+									/>
 									{fw}
 								</Command.Item>
 							{/each}
@@ -285,7 +297,10 @@
 						{...props}
 					>
 						{groupsValue || "Select a timezone"}
-						<ChevronsUpDownIcon class="ml-2 size-4 shrink-0 opacity-50" aria-hidden="true" />
+						<ChevronsUpDownIcon
+							class="ml-2 size-4 shrink-0 opacity-50"
+							aria-hidden="true"
+						/>
 					</Button>
 				{/snippet}
 			</Popover.Trigger>
@@ -336,7 +351,10 @@
 						{...props}
 					>
 						{customValue || "Search countries..."}
-						<ChevronsUpDownIcon class="ml-2 size-4 shrink-0 opacity-50" aria-hidden="true" />
+						<ChevronsUpDownIcon
+							class="ml-2 size-4 shrink-0 opacity-50"
+							aria-hidden="true"
+						/>
 					</Button>
 				{/snippet}
 			</Popover.Trigger>
@@ -350,7 +368,8 @@
 								<Command.Item
 									value={country.label}
 									onSelect={() => {
-										customValue = country.label === customValue ? "" : country.label;
+										customValue =
+											country.label === customValue ? "" : country.label;
 										customOpen = false;
 									}}
 								>
@@ -361,8 +380,8 @@
 												? "opacity-100"
 												: "opacity-0",
 										)}
-									aria-hidden="true"
-								/>
+										aria-hidden="true"
+									/>
 									<span class="flex flex-col">
 										<span class="text-sm">{country.label}</span>
 										<span class="text-muted-foreground text-xs"
@@ -395,7 +414,10 @@
 							id="combobox-invalid"
 						>
 							{invalidValue || "Select a framework"}
-							<ChevronsUpDownIcon class="ml-2 size-4 shrink-0 opacity-50" aria-hidden="true" />
+							<ChevronsUpDownIcon
+								class="ml-2 size-4 shrink-0 opacity-50"
+								aria-hidden="true"
+							/>
 						</Button>
 					{/snippet}
 				</Popover.Trigger>
@@ -446,7 +468,10 @@
 						disabled
 					>
 						{disabledValue || "Select a framework"}
-						<ChevronsUpDownIcon class="ml-2 size-4 shrink-0 opacity-50" aria-hidden="true" />
+						<ChevronsUpDownIcon
+							class="ml-2 size-4 shrink-0 opacity-50"
+							aria-hidden="true"
+						/>
 					</Button>
 				{/snippet}
 			</Popover.Trigger>
@@ -485,7 +510,10 @@
 						{...props}
 					>
 						{autoSelected || "Select a framework"}
-						<ChevronsUpDownIcon class="ml-2 size-4 shrink-0 opacity-50" aria-hidden="true" />
+						<ChevronsUpDownIcon
+							class="ml-2 size-4 shrink-0 opacity-50"
+							aria-hidden="true"
+						/>
 					</Button>
 				{/snippet}
 			</Popover.Trigger>
@@ -509,8 +537,8 @@
 											"mr-2 size-4",
 											autoSelected === fw ? "opacity-100" : "opacity-0",
 										)}
-									aria-hidden="true"
-								/>
+										aria-hidden="true"
+									/>
 									{fw}
 								</Command.Item>
 							{/each}
@@ -535,7 +563,10 @@
 						{...props}
 					>
 						{objectValue?.label ?? "Select a country"}
-						<ChevronsUpDownIcon class="ml-2 size-4 shrink-0 opacity-50" aria-hidden="true" />
+						<ChevronsUpDownIcon
+							class="ml-2 size-4 shrink-0 opacity-50"
+							aria-hidden="true"
+						/>
 					</Button>
 				{/snippet}
 			</Popover.Trigger>
@@ -549,7 +580,8 @@
 								<Command.Item
 									value={country.label}
 									onSelect={() => {
-										objectValue = objectValue?.code === country.code ? null : country;
+										objectValue =
+											objectValue?.code === country.code ? null : country;
 										objectValueOpen = false;
 									}}
 								>
@@ -560,8 +592,8 @@
 												? "opacity-100"
 												: "opacity-0",
 										)}
-									aria-hidden="true"
-								/>
+										aria-hidden="true"
+									/>
 									{country.label}
 								</Command.Item>
 							{/each}
@@ -573,11 +605,17 @@
 	{/snippet}
 </Story>
 
+<!-- 
+// Doesn't full work:
+// still need to fix background of InputGroup on hover (in dark mode)
+// previous patch added a lot of classes on InputGroup.Addon so if we need this kind of component
+// better to create a right one and not just a demo in storybook
+
 <Story name="Input Group">
 	{#snippet template()}
 		<Popover.Root bind:open={addonOpen}>
 			<InputGroup.Root class="w-fit">
-				<InputGroup.Addon>
+				<InputGroup.Addon class="group-hover/input-group:bg-muted dark:group-hover/input-group:bg-muted/50 group-hover/input-group:text-foreground rounded-l-[calc(var(--radius-lg)-1px)] transition-colors">
 					<GlobeIcon class="size-4" aria-hidden="true" />
 				</InputGroup.Addon>
 				<Popover.Trigger>
@@ -590,7 +628,10 @@
 							{...props}
 						>
 							{addonValue || "Select a timezone"}
-							<ChevronsUpDownIcon class="ml-2 size-4 shrink-0 opacity-50" aria-hidden="true" />
+							<ChevronsUpDownIcon
+								class="ml-2 size-4 shrink-0 opacity-50"
+								aria-hidden="true"
+							/>
 						</Button>
 					{/snippet}
 				</Popover.Trigger>
@@ -627,4 +668,4 @@
 			</Popover.Content>
 		</Popover.Root>
 	{/snippet}
-</Story>
+</Story> -->

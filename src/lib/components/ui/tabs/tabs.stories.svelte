@@ -13,7 +13,7 @@
 
 <Story name="Line">
 	{#snippet template()}
-		<Tabs.Root defaultValue="overview">
+		<Tabs.Root value="overview">
 			<Tabs.List variant="line">
 				<Tabs.Trigger value="overview">Overview</Tabs.Trigger>
 				<Tabs.Trigger value="analytics">Analytics</Tabs.Trigger>
@@ -25,7 +25,7 @@
 
 <Story name="Vertical">
 	{#snippet template()}
-		<Tabs.Root defaultValue="account" orientation="vertical">
+		<Tabs.Root value="account" orientation="vertical">
 			<Tabs.List>
 				<Tabs.Trigger value="account">Account</Tabs.Trigger>
 				<Tabs.Trigger value="password">Password</Tabs.Trigger>
@@ -37,7 +37,7 @@
 
 <Story name="Disabled">
 	{#snippet template()}
-		<Tabs.Root defaultValue="home">
+		<Tabs.Root value="home">
 			<Tabs.List>
 				<Tabs.Trigger value="home">Home</Tabs.Trigger>
 				<Tabs.Trigger value="settings" disabled>Disabled</Tabs.Trigger>
@@ -48,7 +48,7 @@
 
 <Story name="Icons">
 	{#snippet template()}
-		<Tabs.Root defaultValue="preview">
+		<Tabs.Root value="preview">
 			<Tabs.List>
 				<Tabs.Trigger value="preview">
 					<AppWindowIcon />

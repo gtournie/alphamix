@@ -4,14 +4,14 @@
 	import { Button } from "$lib/components/ui/button/index.js";
 	import { toast } from "svelte-sonner";
 
-	const positions = /** @type {const} */ ([
+	const positions = [
 		"top-left",
 		"top-center",
 		"top-right",
 		"bottom-left",
 		"bottom-center",
 		"bottom-right",
-	]);
+	] as const;
 
 	const { Story } = defineMeta({
 		title: "UI/Sonner",
@@ -20,11 +20,6 @@
 	});
 </script>
 
-<script>
-	let selectedPosition = $state(
-		/** @type {typeof positions[number]} */ ("bottom-right"),
-	);
-</script>
 
 <Story name="Types">
 	{#snippet template()}
@@ -68,13 +63,13 @@
 
 <Story name="Position">
 	{#snippet template()}
-		<Toaster position={selectedPosition} />
+		<Toaster />
 		<div class="flex flex-col gap-4 pt-24">
 			<div class="flex flex-wrap gap-2 justify-center">
 				{#each positions as pos}
 					<Button
 						variant="outline"
-						onclick={() => toast((selectedPosition = pos))}
+						onclick={() => toast(`Position: ${pos}`, { position: pos })}
 					>
 						{pos}
 					</Button>

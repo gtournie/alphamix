@@ -26,11 +26,11 @@
 	});
 </script>
 
-<script>
+<script lang="ts">
 	let isCopied = $state(false);
 	let isFavorite = $state(false);
 
-	function copyToClipboard(text) {
+	function copyToClipboard(text: string) {
 		navigator.clipboard.writeText(text);
 		isCopied = true;
 		setTimeout(() => (isCopied = false), 2000);
