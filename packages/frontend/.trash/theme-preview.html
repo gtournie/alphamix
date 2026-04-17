@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Surface Color Finder</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Arial Rounded MT Bold', Arial, sans-serif; background: #1a1a1a; color: #eee; }
+
+  .controls {
+    position: sticky; top: 0; z-index: 10;
+    background: #111; padding: 12px 24px; border-bottom: 1px solid #333;
+    display: flex; flex-wrap: wrap; gap: 16px; align-items: center;
+  }
+  .control-group { display: flex; flex-direction: column; gap: 3px; }
+  .control-group label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; color: #888; }
+  .control-group input[type="range"] { width: 160px; accent-color: orange; }
+  .control-group .value { font-size: 12px; color: #ccc; font-variant-numeric: tabular-nums; }
+  .reset-btn {
+    padding: 6px 14px; border-radius: 6px; border: 1px solid #555;
+    background: #222; color: #ccc; font-size: 11px; font-family: inherit; cursor: pointer;
+  }
+  .reset-btn:hover { border-color: #999; color: #fff; }
+
+  /* ===== Theme tokens — scoped per mode ===== */
+  .theme {
+    --primary: oklch(0.764 0.154 73.667);
+    --primary-foreground: oklch(0.415 0.106 48.176);
+    --destructive: oklch(0.577 0.245 27.325);
+    --foreground: oklch(0.200 0.030 50.0);
+    --card-foreground: oklch(0.200 0.030 50.0);
+    --popover-foreground: oklch(0.200 0.030 50.0);
+    --muted-foreground: oklch(0.415 0.106 48.2);
+    --secondary-foreground: oklch(0.200 0.030 50.0);
+    --accent-foreground: oklch(0.200 0.030 50.0);
+    --border: oklch(0.499 0.130 45.607);
+    --input: oklch(0.499 0.130 45.607);
+    --ring: oklch(0.764 0.154 73.667);
+    --background: oklch(0.470 0.120 65.0);
+    --card: oklch(0.782 0.135 72.0);
+    --popover: oklch(0.782 0.135 72.0);
+    --muted: oklch(0.818 0.145 71.0);
+    --secondary: oklch(0.818 0.145 71.0);
+    --accent: oklch(0.818 0.145 71.0);
+  }
+  .theme.dark {
+    --primary: oklch(0.870 0.103 79.994);
+    --primary-foreground: oklch(0.228 0.017 66.783);
+    --destructive: oklch(0.704 0.191 22.216);
+    --foreground: oklch(0.934 0.038 80.022);
+    --card-foreground: oklch(0.934 0.038 80.022);
+    --popover-foreground: oklch(0.934 0.038 80.022);
+    --muted-foreground: oklch(0.709 0.010 56.259);
+    --secondary-foreground: oklch(0.934 0.038 80.022);
+    --accent-foreground: oklch(0.934 0.038 80.022);
+    --border: oklch(1 0 0 / 10%);
+    --input: oklch(1 0 0 / 15%);
+    --ring: oklch(0.870 0.103 79.994);
+    --background: oklch(0.228 0.017 66.783);
+    --card: oklch(0.310 0.032 74.181);
+    --popover: oklch(0.310 0.032 74.181);
+    --muted: oklch(0.346 0.042 72.829);
+    --secondary: oklch(0.346 0.042 72.829);
+    --accent: oklch(0.346 0.042 72.829);
+  }
+
+  .modes { display: flex; }
+  .mode { flex: 1; padding: 20px; }
+  .mode-label { font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: var(--muted-foreground); margin-bottom: 8px; }
+  .mode h2 { font-size: 16px; margin-bottom: 12px; color: var(--primary); }
+  .mode h3 { font-size: 10px; margin: 10px 0 6px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--muted-foreground); }
+
+  .section { border-radius: 10px; padding: 12px; margin-bottom: 10px; background: rgba(0,0,0,0.15); }
+  .component-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: flex-start; margin-bottom: 8px; }
+  .btn { padding: 7px 14px; border-radius: 8px; font-size: 11px; font-weight: bold; border: none; cursor: pointer; font-family: inherit; }
+  .btn-primary { background: var(--primary); color: var(--primary-foreground); }
+  .btn-secondary { background: var(--secondary); color: var(--secondary-foreground); }
+  .btn-destructive { background: var(--destructive); color: white; }
+  .btn-outline { background: transparent; color: var(--foreground); border: 1px solid var(--border); }
+  .card-demo { padding: 12px; border-radius: 8px; width: 180px; background: var(--card); border: 1px solid var(--border); color: var(--card-foreground); }
+  .card-demo .card-title { font-size: 12px; font-weight: bold; margin-bottom: 3px; }
+  .card-demo .card-desc { font-size: 10px; color: var(--muted-foreground); }
+  .input-demo { padding: 6px 9px; border-radius: 6px; font-size: 11px; font-family: inherit; width: 140px; background: var(--background); border: 1px solid var(--input); color: var(--foreground); }
+  .badge { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 9px; font-weight: bold; }
+  .badge-primary { background: var(--primary); color: var(--primary-foreground); }
+  .badge-muted { background: var(--muted); color: var(--muted-foreground); }
+  .separator { height: 1px; width: 100%; margin: 8px 0; background: var(--border); opacity: 0.5; }
+  .bg-surface { background: var(--background); border-radius: 8px; padding: 14px; color: var(--foreground); }
+  .muted-block { background: var(--muted); border-radius: 6px; padding: 8px; margin-top: 4px; }
+  .popover-demo { border-radius: 8px; padding: 4px; width: 160px; box-shadow: 0 4px 12px rgba(0,0,0,0.25); background: var(--popover); border: 1px solid var(--border); color: var(--popover-foreground); }
+  .popover-item { padding: 4px 8px; border-radius: 4px; font-size: 10px; }
+  .popover-item-hover { background: var(--accent); color: var(--accent-foreground); }
+  .popover-item-muted { color: var(--muted-foreground); }
+  .swatch-row { display: flex; gap: 4px; margin: 4px 0; flex-wrap: wrap; }
+  .swatch { width: 60px; height: 36px; border-radius: 5px; display: flex; align-items: center; justify-content: center; font-size: 8px; font-weight: bold; border: 1px solid rgba(128,128,128,0.2); }
+  .oklch-output { background: #111; border: 1px solid #333; border-radius: 8px; padding: 10px 16px; margin: 12px 24px; font-size: 11px; color: #aaa; font-family: monospace; }
+</style>
+</head>
+<body>
+
+<div class="controls">
+  <div style="font-size: 11px; color: #666;">Light surface:</div>
+  <div class="control-group">
+    <label>Lightness (L)</label>
+    <input type="range" id="L" min="0.20" max="0.95" value="0.47" step="0.005">
+    <span class="value" id="L-val">0.470</span>
+  </div>
+  <div class="control-group">
+    <label>Chroma (C)</label>
+    <input type="range" id="C" min="0.00" max="0.25" value="0.12" step="0.005">
+    <span class="value" id="C-val">0.120</span>
+  </div>
+  <div class="control-group">
+    <label>Hue (H)</label>
+    <input type="range" id="H" min="0" max="360" value="65" step="1">
+    <span class="value" id="H-val">65</span>
+  </div>
+  <button class="reset-btn" id="reset">Reset</button>
+</div>
+
+<div class="modes" id="modes"></div>
+<div class="oklch-output" id="output"></div>
+
+<script>
+const Ls = document.getElementById('L');
+const Cs = document.getElementById('C');
+const Hs = document.getElementById('H');
+
+const defaults = { L: 0.47, C: 0.12, H: 65 };
+
+// Single template — used for BOTH light and dark
+function modeTemplate(label, gradDarker, gradLighter, extraClass) {
+  return `
+  <div class="mode theme ${extraClass}" style="
+    background-color: ${gradDarker};
+    background-image:
+      url(&quot;data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1250' height='1250'%3E%3Cfilter id='noise1'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1' numOctaves='5' stitchTiles='stitch' /%3E%3CfeColorMatrix values='1 0 0 0 0 0 1 0 0 0 0 0 1 0 0 0 0 0 0.5 0' /%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise1)'/%3E%3C/svg%3E&quot;),
+      radial-gradient(circle at 50% 50%, ${gradLighter} 0%, ${gradDarker} 100%);
+    background-size: 1250px 1250px, cover;
+    background-repeat: repeat, no-repeat;
+    background-blend-mode: multiply, normal;">
+    <div class="mode-label">${label}</div>
+    <h2>Alphamix Theme</h2>
+    <div class="section">
+      <h3>Tokens</h3>
+      <div class="swatch-row">
+        <div class="swatch" style="background:var(--background); color:var(--foreground);">bg</div>
+        <div class="swatch" style="background:var(--card); color:var(--card-foreground);">card</div>
+        <div class="swatch" style="background:var(--muted); color:var(--muted-foreground);">muted</div>
+        <div class="swatch" style="background:var(--primary); color:var(--primary-foreground);">primary</div>
+        <div class="swatch" style="background:var(--foreground); color:var(--background);">fg</div>
+        <div class="swatch" style="background:var(--border); color:var(--foreground);">border</div>
+      </div>
+    </div>
+    <div class="section">
+      <h3>Components on bg-background</h3>
+      <div class="bg-surface">
+        <div class="component-row">
+          <button class="btn btn-primary">Primary</button>
+          <button class="btn btn-secondary">Secondary</button>
+          <button class="btn btn-destructive">Destructive</button>
+          <button class="btn btn-outline">Outline</button>
+        </div>
+        <div class="separator"></div>
+        <div class="component-row">
+          <div class="card-demo">
+            <div class="card-title">Card Title</div>
+            <div class="card-desc">Muted text inside a card nested in bg</div>
+          </div>
+          <div>
+            <input class="input-demo" value="Input field" />
+            <div style="margin-top:6px;">
+              <span class="badge badge-primary">Primary</span>
+              <span class="badge badge-muted">Muted</span>
+            </div>
+            <div class="muted-block">
+              <span style="font-size:10px; color:var(--secondary-foreground);">Content on muted</span><br>
+              <span style="font-size:9px; color:var(--muted-foreground);">Muted foreground</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="section">
+      <h3>Card floating on gradient</h3>
+      <div class="card-demo" style="width:240px;">
+        <div class="card-title">Floating Card</div>
+        <div class="card-desc">Card directly on gradient background</div>
+        <div style="margin-top:6px;">
+          <button class="btn btn-primary" style="font-size:10px; padding:4px 10px;">Action</button>
+        </div>
+      </div>
+    </div>
+    <div class="section">
+      <h3>Popover / Dropdown</h3>
+      <div class="popover-demo">
+        <div class="popover-item">Menu item 1</div>
+        <div class="popover-item popover-item-hover">Hovered item</div>
+        <div class="popover-item">Menu item 3</div>
+        <div style="height:1px; background:var(--border); margin:2px 0;"></div>
+        <div class="popover-item popover-item-muted">Muted action</div>
+      </div>
+    </div>
+    <div class="section">
+      <h3>Charts</h3>
+      <div class="swatch-row">
+        <div class="swatch" style="background:var(--primary); color:var(--primary-foreground);">1</div>
+        <div class="swatch" style="background:oklch(0.677 0.143 59.746); color:white;">2</div>
+        <div class="swatch" style="background:oklch(0.579 0.150 45.607); color:white;">3</div>
+        <div class="swatch" style="background:oklch(0.415 0.106 48.176); color:white;">4</div>
+        <div class="swatch" style="background:oklch(0.304 0.069 46.920); color:white;">5</div>
+      </div>
+    </div>
+  </div>`;
+}
+
+function update() {
+  const l = parseFloat(Ls.value);
+  const c = parseFloat(Cs.value);
+  const h = parseFloat(Hs.value);
+
+  document.getElementById('L-val').textContent = l.toFixed(3);
+  document.getElementById('C-val').textContent = c.toFixed(3);
+  document.getElementById('H-val').textContent = h;
+
+  const surface = `oklch(${l.toFixed(3)} ${c.toFixed(3)} ${h.toFixed(1)})`;
+
+  // Render both modes from the SAME template
+  document.getElementById('modes').innerHTML =
+    modeTemplate('Light Mode (sliders)', '#bf571c', '#d67f2a', 'light') +
+    modeTemplate('Dark Mode (fixed)', '#221b14', '#3a2e1e', 'dark');
+
+  // ONLY --background changes. Card, muted, etc. stay at their CSS defaults.
+  const lightEl = document.querySelector('.theme.light');
+  lightEl.style.setProperty('--background', surface);
+
+  document.getElementById('output').innerHTML = '<b>Surface:</b> ' + surface;
+}
+
+document.getElementById('reset').addEventListener('click', () => {
+  Ls.value = defaults.L; Cs.value = defaults.C; Hs.value = defaults.H;
+  update();
+});
+
+Ls.addEventListener('input', update);
+Cs.addEventListener('input', update);
+Hs.addEventListener('input', update);
+update();
+</script>
+</body>
+</html>

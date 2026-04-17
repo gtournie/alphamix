@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Alphamix Theme</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Arial Rounded MT Bold', Arial, sans-serif;
+      background: #1a1a1a;
+      color: #eee;
+    }
+
+    .modes {
+      display: flex;
+    }
+
+    .mode {
+      flex: 1;
+      padding: 20px;
+      position: relative;
+    }
+
+    .mode::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1250' height='1250'%3E%3Cfilter id='noise1'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1' numOctaves='5' stitchTiles='stitch' /%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise1)'/%3E%3C/svg%3E");
+      background-size: 1250px 1250px;
+      background-repeat: repeat;
+      mix-blend-mode: multiply;
+      opacity: var(--noise-opacity, 0.15);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .mode>* {
+      position: relative;
+      z-index: 1;
+    }
+
+    .mode-label {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--muted-foreground);
+      margin-bottom: 8px;
+    }
+
+    .mode h2 {
+      font-size: 16px;
+      margin-bottom: 12px;
+      color: var(--foreground);
+    }
+
+    .mode h3 {
+      font-size: 10px;
+      margin: 10px 0 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--muted-foreground);
+    }
+
+    .section {
+      border-radius: 10px;
+      padding: 12px;
+      margin-bottom: 10px;
+      background: linear-gradient(to bottom, var(--gradient-from), var(--gradient-to));
+    }
+
+    .component-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: flex-start;
+      margin-bottom: 8px;
+    }
+
+    .btn {
+      padding: 7px 14px;
+      border-radius: 8px;
+      font-size: 11px;
+      font-weight: bold;
+      border: none;
+      cursor: pointer;
+      font-family: inherit;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: var(--primary-foreground);
+    }
+
+    .btn-secondary {
+      background: var(--secondary);
+      color: var(--secondary-foreground);
+    }
+
+    .btn-destructive {
+      background: var(--destructive);
+      color: white;
+    }
+
+    .btn-outline {
+      background: transparent;
+      color: var(--foreground);
+      border: 1px solid var(--border);
+    }
+
+    .card-demo {
+      padding: 12px;
+      border-radius: 8px;
+      width: 180px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      color: var(--card-foreground);
+    }
+
+    .card-demo .card-title {
+      font-size: 12px;
+      font-weight: bold;
+      margin-bottom: 3px;
+    }
+
+    .card-demo .card-desc {
+      font-size: 10px;
+      color: var(--muted-foreground);
+    }
+
+    .input-demo {
+      padding: 6px 9px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-family: inherit;
+      width: 140px;
+      background: var(--background);
+      border: 1px solid var(--input);
+      color: var(--foreground);
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-size: 9px;
+      font-weight: bold;
+    }
+
+    .badge-primary {
+      background: var(--primary);
+      color: var(--primary-foreground);
+    }
+
+    .badge-muted {
+      background: var(--muted);
+      color: var(--muted-foreground);
+    }
+
+    .separator {
+      height: 1px;
+      width: 100%;
+      margin: 8px 0;
+      background: var(--border);
+      opacity: 0.5;
+    }
+
+    .bg-surface {
+      background: var(--background);
+      border-radius: 8px;
+      padding: 14px;
+      color: var(--foreground);
+    }
+
+    .muted-block {
+      background: var(--muted);
+      border-radius: 6px;
+      padding: 8px;
+      margin-top: 4px;
+    }
+
+    .popover-demo {
+      border-radius: 8px;
+      padding: 4px;
+      width: 160px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+      background: var(--popover);
+      border: 1px solid var(--border);
+      color: var(--popover-foreground);
+    }
+
+    .popover-item {
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 10px;
+    }
+
+    .popover-item-hover {
+      background: var(--accent);
+      color: var(--accent-foreground);
+    }
+
+    .popover-item-muted {
+      color: var(--muted-foreground);
+    }
+
+    .swatch-row {
+      display: flex;
+      gap: 4px;
+      margin: 4px 0;
+      flex-wrap: wrap;
+    }
+
+    .swatch {
+      width: 60px;
+      height: 36px;
+      border-radius: 5px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 8px;
+      font-weight: bold;
+      border: 1px solid rgba(128, 128, 128, 0.2);
+    }
+
+    .oklch-output {
+      background: #111;
+      border: 1px solid #333;
+      border-radius: 8px;
+      padding: 10px 16px;
+      margin: 12px 24px;
+      font-size: 11px;
+      color: #aaa;
+      font-family: monospace;
+      white-space: pre-wrap;
+      line-height: 1.6;
+    }
+
+    .contrast-demo {
+      margin: 12px 24px;
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .contrast-box {
+      border-radius: 8px;
+      padding: 14px 18px;
+      min-width: 200px;
+      flex: 1;
+      border: 1px solid rgba(128, 128, 128, 0.3);
+    }
+
+    .contrast-box .label {
+      font-size: 9px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      opacity: 0.6;
+      margin-bottom: 6px;
+    }
+
+    .contrast-box .sample {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      font-weight: bold;
+    }
+
+    .contrast-box .sample-lg {
+      font-size: 16px;
+      font-weight: bold;
+    }
+
+    .contrast-box .ratio {
+      font-size: 9px;
+      font-family: monospace;
+      margin-top: 4px;
+      opacity: 0.7;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="modes" id="modes"></div>
+  <div class="contrast-demo" id="contrast-demo"></div>
+  <div class="oklch-output" id="output"></div>
+
+  <script>
+    const palette = {
+      name: "Alphamix",
+      type: "Custom",
+      desc: "Creme chaud, or ambré, terre cuite, accent olive",
+      light: {
+        background: "oklch(0.988 0.005 90)",
+        foreground: "oklch(0.286 0.042 59)",
+        card: "oklch(1.000 0.000 90)",
+        "card-foreground": "oklch(0.286 0.042 59)",
+        popover: "oklch(1.000 0.000 90)",
+        "popover-foreground": "oklch(0.286 0.042 59)",
+        primary: "oklch(0.836 0.108 83)",
+        "primary-foreground": "oklch(0.263 0.065 54)",
+        secondary: "oklch(0.718 0.092 53)",
+        "secondary-foreground": "oklch(0.963 0.034 80)",
+        accent: "oklch(0.933 0.020 77)",
+        "accent-foreground": "oklch(0.286 0.042 59)",
+        muted: "oklch(0.92 0.015 79)",
+        "muted-foreground": "oklch(0.67 0.025 64)",
+        destructive: "oklch(0.687 0.149 26)",
+        border: "oklch(0.888 0.016 77)",
+        input: "oklch(0.888 0.016 77)",
+        ring: "oklch(0.836 0.108 83)",
+        "gradient-from": "oklch(0.98 0.005 90)",
+        "gradient-to": "oklch(0.92 0.022 69)",
+        "noise-opacity": "0.5",
+      },
+      gradient: { light: ["oklch(0.60 0.15 46)", "oklch(0.75 0.143 58)"] }
+    };
+
+    function modeTemplate(label, gradDarker, gradLighter) {
+      return `
+  <div class="mode theme light" style="
+    background-color: ${gradDarker};
+    background-image:
+      url(&quot;data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1250' height='1250'%3E%3Cfilter id='noise1'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1' numOctaves='5' stitchTiles='stitch' /%3E%3CfeColorMatrix values='1 0 0 0 0 0 1 0 0 0 0 0 1 0 0 0 0 0 0.5 0' /%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise1)'/%3E%3C/svg%3E&quot;),
+      radial-gradient(circle at 50% 50%, ${gradLighter} 0%, ${gradDarker} 100%);
+    background-size: 1250px 1250px, cover;
+    background-repeat: repeat, no-repeat;
+    background-blend-mode: multiply, normal;">
+    <div class="mode-label">${label}</div>
+    <h2>Alphamix Theme</h2>
+    <div class="section">
+      <h3>Tokens</h3>
+      <div class="swatch-row">
+        <div class="swatch" style="background:var(--background); color:var(--foreground);">bg</div>
+        <div class="swatch" style="background:var(--card); color:var(--card-foreground);">card</div>
+        <div class="swatch" style="background:var(--muted); color:var(--muted-foreground);">muted</div>
+        <div class="swatch" style="background:var(--primary); color:var(--primary-foreground);">primary</div>
+        <div class="swatch" style="background:var(--secondary); color:var(--secondary-foreground);">second.</div>
+        <div class="swatch" style="background:var(--accent); color:var(--accent-foreground);">accent</div>
+        <div class="swatch" style="background:var(--foreground); color:var(--background);">fg</div>
+        <div class="swatch" style="background:var(--border); color:var(--foreground);">border</div>
+      </div>
+    </div>
+    <div class="section">
+      <h3>Components on bg-background</h3>
+      <div class="bg-surface">
+        <div class="component-row">
+          <button class="btn btn-primary">Primary</button>
+          <button class="btn btn-secondary">Secondary</button>
+          <button class="btn btn-destructive">Destructive</button>
+          <button class="btn btn-outline">Outline</button>
+        </div>
+        <div class="separator"></div>
+        <div class="component-row">
+          <div class="card-demo">
+            <div class="card-title">Card Title</div>
+            <div class="card-desc">Muted text inside a card nested in bg</div>
+          </div>
+          <div>
+            <input class="input-demo" value="Input field" />
+            <div style="margin-top:6px;">
+              <span class="badge badge-primary">Primary</span>
+              <span class="badge badge-muted">Muted</span>
+            </div>
+            <div class="muted-block">
+              <span style="font-size:10px; color:var(--secondary-foreground);">Content on muted</span><br>
+              <span style="font-size:9px; color:var(--muted-foreground);">Muted foreground</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="section">
+      <h3>Card floating on gradient</h3>
+      <div class="card-demo" style="width:240px;">
+        <div class="card-title">Floating Card</div>
+        <div class="card-desc">Card directly on gradient background</div>
+        <div style="margin-top:6px;">
+          <button class="btn btn-primary" style="font-size:10px; padding:4px 10px;">Action</button>
+        </div>
+      </div>
+    </div>
+    <div class="section">
+      <h3>Popover / Dropdown</h3>
+      <div class="popover-demo">
+        <div class="popover-item">Menu item 1</div>
+        <div class="popover-item popover-item-hover">Hovered item</div>
+        <div class="popover-item">Menu item 3</div>
+        <div style="height:1px; background:var(--border); margin:2px 0;"></div>
+        <div class="popover-item popover-item-muted">Muted action</div>
+      </div>
+    </div>
+    <div class="section">
+      <h3>Charts</h3>
+      <div class="swatch-row">
+        <div class="swatch" style="background:var(--primary); color:var(--primary-foreground);">1</div>
+        <div class="swatch" style="background:var(--secondary); color:var(--secondary-foreground);">2</div>
+        <div class="swatch" style="background:var(--accent); color:var(--accent-foreground);">3</div>
+        <div class="swatch" style="background:var(--muted); color:var(--muted-foreground);">4</div>
+        <div class="swatch" style="background:var(--destructive); color:white;">5</div>
+      </div>
+    </div>
+  </div>`;
+    }
+
+    function applyTokens(el, tokens) {
+      for (const [key, val] of Object.entries(tokens)) {
+        el.style.setProperty('--' + key, val);
+        if (key === 'foreground') {
+          el.style.setProperty('--card-foreground', tokens['card-foreground'] || val);
+          el.style.setProperty('--popover-foreground', tokens['popover-foreground'] || val);
+        }
+      }
+    }
+
+    function render() {
+      const p = palette;
+      const g = p.gradient;
+
+      document.getElementById('modes').innerHTML =
+        modeTemplate('Light Mode', g.light[0], g.light[1]);
+
+      applyTokens(document.querySelector('.theme.light'), p.light);
+
+      // Contrast demo
+      const _cv = document.createElement('canvas');
+      _cv.width = _cv.height = 1;
+      const _cx = _cv.getContext('2d');
+      function _rgb(c) { _cx.clearRect(0, 0, 1, 1); _cx.fillStyle = '#000'; _cx.fillStyle = c; _cx.fillRect(0, 0, 1, 1); const d = _cx.getImageData(0, 0, 1, 1).data; return [d[0] / 255, d[1] / 255, d[2] / 255]; }
+      function _lum([r, g, b]) { const f = c => c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4); return 0.2126 * f(r) + 0.7152 * f(g) + 0.0722 * f(b); }
+      function _cr(a, b) { const l1 = _lum(_rgb(a)), l2 = _lum(_rgb(b)); return (Math.max(l1, l2) + 0.05) / (Math.min(l1, l2) + 0.05); }
+      function _lvl(r) { return r >= 7 ? 'AAA' : r >= 4.5 ? 'AA' : r >= 3 ? 'AA-large' : 'FAIL'; }
+
+      const demoEl = document.getElementById('contrast-demo');
+      const demos = [
+        { label: 'muted-fg sur gradient (sombre)', fg: p.light['muted-foreground'], bg: g.light[0], name: 'muted-fg / grad-darker' },
+        { label: 'muted-fg sur gradient (clair)', fg: p.light['muted-foreground'], bg: g.light[1], name: 'muted-fg / grad-lighter' },
+        { label: 'muted-fg sur card', fg: p.light['muted-foreground'], bg: p.light.card, name: 'muted-fg / card' },
+        { label: 'muted-fg sur background', fg: p.light['muted-foreground'], bg: p.light.background, name: 'muted-fg / background' },
+        { label: 'foreground sur gradient (sombre)', fg: p.light.foreground, bg: g.light[0], name: 'fg / grad-darker' },
+        { label: 'foreground sur gradient (clair)', fg: p.light.foreground, bg: g.light[1], name: 'fg / grad-lighter' },
+      ];
+      demoEl.innerHTML = demos.map(d => {
+        const r = _cr(d.fg, d.bg);
+        const lv = _lvl(r);
+        const fail = lv === 'FAIL' ? '; outline: 2px solid red' : '';
+        return `<div class="contrast-box" style="background:${d.bg}${fail}">
+      <div class="label" style="color:${d.fg}">${d.label}</div>
+      <div class="sample" style="color:${d.fg}">TOKENS — Sample Text</div>
+      <div class="sample-lg" style="color:${d.fg}">Alphamix Theme</div>
+      <div class="ratio" style="color:${d.fg}">${r.toFixed(2)}:1 — ${lv}</div>
+    </div>`;
+      }).join('');
+
+      // Output
+      const lines = ['/* ── Alphamix Light Theme ── */'];
+      for (const [k, v] of Object.entries(p.light)) lines.push(`  --${k}: ${v};`);
+      document.getElementById('output').innerHTML = lines.join('\n');
+    }
+
+    render();
+  </script>
+</body>
+</html>

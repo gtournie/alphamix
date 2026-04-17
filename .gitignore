@@ -1,4 +1,7 @@
 .svelte-kit/
 node_modules/
 .DS_Store
-
+.claude/vigil/
+.claude/tmp/
+.history/
+.playwright-mcp/

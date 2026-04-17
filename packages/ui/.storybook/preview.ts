@@ -1,4 +1,5 @@
 import type { Preview } from '@storybook/svelte';
+import { withThemeByDataAttribute } from '@storybook/addon-themes';
 import '../src/app.css';
 
 const preview: Preview = {
@@ -7,7 +8,13 @@ const preview: Preview = {
 			const isDark = context.globals?.backgrounds?.value === 'dark';
 			document.documentElement.classList.toggle('dark', isDark);
 			return story();
-		}
+		},
+		withThemeByDataAttribute({
+			themes: { default: '', alphamix: 'alphamix' },
+			defaultTheme: 'default',
+			attributeName: 'data-theme',
+			parentSelector: 'html'
+		})
 	],
 	parameters: {
 		controls: {

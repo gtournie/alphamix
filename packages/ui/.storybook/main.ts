@@ -7,7 +7,8 @@ const config: StorybookConfig = {
 		'@storybook/addon-vitest',
 		'@storybook/addon-a11y',
 		'@storybook/addon-docs',
-		'@chromatic-com/storybook'
+		'@chromatic-com/storybook',
+		'@storybook/addon-themes'
 	],
 	framework: {
 		name: '@storybook/svelte-vite',

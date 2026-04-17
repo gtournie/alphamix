@@ -83,7 +83,7 @@
 
 <Story name="All Components">
 	{#snippet template()}
-		<div class="bg-background text-foreground min-h-screen p-6 md:p-8">
+		<div class="showcase-body text-foreground min-h-screen p-6 md:p-8">
 			<div class="mx-auto grid max-w-7xl gap-4 lg:grid-cols-4 md:grid-cols-2">
 				<!-- ═══════════════════════════════════════════════════════════ -->
 				<!-- COL 1: Payment Method -->
@@ -317,9 +317,9 @@
 				</div>
 
 				<!-- ═══════════════════════════════════════════════════════════ -->
-				<!-- COL 3: Auth + Compute + GPU Counter -->
+				<!-- COL 3: Auth + Compute + GPU Counter — wrapped in .theme-section -->
 				<!-- ═══════════════════════════════════════════════════════════ -->
-				<div class="flex flex-col gap-4">
+				<section class="theme-section flex flex-col gap-4">
 					<!-- Two-factor Authentication -->
 					<Card.Root>
 						<Card.Header>
@@ -440,7 +440,7 @@
 							</div>
 						</Card.Content>
 					</Card.Root>
-				</div>
+				</section>
 
 				<!-- ═══════════════════════════════════════════════════════════ -->
 				<!-- COL 4: Survey + Processing + Settings -->
@@ -726,6 +726,64 @@
 							</div>
 						</Card.Content>
 					</Card.Root>
+
+					<!-- Theme tokens demo (Alphamix extras) -->
+					<Card.Root>
+						<Card.Header>
+							<Card.Title>Theme tokens</Card.Title>
+							<Card.Description>
+								Alphamix-specific tokens beyond shadcn. Bare on the default theme.
+							</Card.Description>
+						</Card.Header>
+						<Card.Content class="space-y-4">
+							<div class="space-y-1">
+								<div class="text-muted-foreground text-xs uppercase tracking-wide">
+									Page gradient
+								</div>
+								<div class="swatch-gradient rounded-md" style="height:2.5rem"></div>
+								<div class="text-muted-foreground flex justify-between font-mono text-[10px]">
+									<span>--color-darker</span>
+									<span>--color-lighter</span>
+								</div>
+							</div>
+
+							<div class="space-y-1">
+								<div class="text-muted-foreground text-xs uppercase tracking-wide">
+									Game tokens
+								</div>
+								<div class="grid grid-cols-3 gap-2">
+									<div class="space-y-1">
+										<div class="h-10 rounded-md" style="background:var(--tile-color, var(--muted))"></div>
+										<div class="text-muted-foreground text-center font-mono text-[10px]">tile</div>
+									</div>
+									<div class="space-y-1">
+										<div class="h-10 rounded-md" style="background:var(--logo-color, var(--muted))"></div>
+										<div class="text-muted-foreground text-center font-mono text-[10px]">logo</div>
+									</div>
+									<div class="space-y-1">
+										<div class="h-10 rounded-md" style="background:var(--button-background, var(--primary))"></div>
+										<div class="text-muted-foreground text-center font-mono text-[10px]">button</div>
+									</div>
+								</div>
+							</div>
+
+							<div class="space-y-1">
+								<div class="text-muted-foreground text-xs uppercase tracking-wide">
+									Logo demo
+								</div>
+								<div class="flex justify-center py-3">
+									<span class="logo-demo" aria-label="A letter tile">A</span>
+								</div>
+							</div>
+
+							<div class="space-y-1">
+								<div class="text-muted-foreground text-xs uppercase tracking-wide">
+									Button demo
+								</div>
+								<button type="button" class="button-demo w-full">Play</button>
+							</div>
+						</Card.Content>
+					</Card.Root>
 				</div>
 
 				<!-- Pagination (full width) -->
@@ -772,3 +830,76 @@
 		</div>
 	{/snippet}
 </Story>
+
+<style>
+	/* Body-level background: radial gradient + noise overlay — matches frontend's +layout.svelte.
+	   CSS-var fallbacks keep the default (shadcn) theme rendering as a plain --background. */
+	.showcase-body {
+		background-color: var(--color-darker, var(--background));
+		background-image:
+			url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1250' height='1250'%3E%3Cfilter id='noise1'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1' numOctaves='5' stitchTiles='stitch' /%3E%3CfeColorMatrix values='1 0 0 0 0 0 1 0 0 0 0 0 1 0 0 0 0 0 0.5 0' /%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise1)'/%3E%3C/svg%3E"),
+			radial-gradient(
+				circle at 50% 50%,
+				var(--color-lighter, var(--background)) 0%,
+				var(--color-darker, var(--background)) 100%
+			);
+		background-size: 1250px 1250px, cover;
+		background-repeat: repeat, no-repeat;
+		background-attachment: fixed;
+		background-blend-mode: multiply, normal;
+	}
+
+	/* .theme-section — subtle vertical gradient panel from the Alphamix HTML mockups.
+	   Used to group a stack of Cards inside a themed container. Falls back to --muted
+	   on the default theme so the wrapper doesn't disappear visually. */
+	.theme-section {
+		border-radius: 12px;
+		padding: 1rem;
+		background: linear-gradient(
+			to bottom,
+			var(--gradient-from, var(--muted)),
+			var(--gradient-to, var(--muted))
+		);
+	}
+
+	.swatch-gradient {
+		background: linear-gradient(
+			to right,
+			var(--color-darker, var(--muted)),
+			var(--color-lighter, var(--muted))
+		);
+	}
+
+	.logo-demo {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		width: 3rem;
+		height: 3rem;
+		border-radius: 0.75rem;
+		font-family: var(--font-sans, inherit);
+		font-size: 1.75rem;
+		font-weight: 700;
+		background: var(--logo-color, var(--primary));
+		color: var(--logo-depth-color, var(--primary-foreground));
+		border: 2px solid var(--logo-border-color, var(--border));
+		box-shadow: 0 3px 0 var(--logo-depth-color, transparent);
+	}
+
+	.button-demo {
+		padding: 0.6rem 1rem;
+		border-radius: 0.6rem;
+		font-family: var(--font-sans, inherit);
+		font-weight: 700;
+		font-size: 0.9rem;
+		background: var(--button-background, var(--primary));
+		color: var(--button-color, var(--primary-foreground));
+		border: none;
+		box-shadow: 0 3px 0 var(--button-depth-color, transparent);
+		cursor: pointer;
+	}
+	.button-demo:active {
+		transform: translateY(2px);
+		box-shadow: 0 1px 0 var(--button-depth-color, transparent);
+	}
+</style>
