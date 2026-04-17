@@ -1,0 +1,5 @@
+{
+  "scripts": {
+    "build": "emcc gaddag_converter.c -O3 -flto -s MALLOC=emmalloc -s WASM=1 -s ALLOW_MEMORY_GROWTH=1 -s INITIAL_MEMORY=128MB -s MAXIMUM_MEMORY=4096MB -s STACK_SIZE=10MB -s EXPORTED_FUNCTIONS=\"['_convert_dawg_to_gaddag', '_malloc', '_free', '_set_progress_callback']\" -s EXPORTED_RUNTIME_METHODS=\"['addFunction']\" -s RESERVED_FUNCTION_POINTERS=1 -s MODULARIZE=1 -s EXPORT_ES6=1 -o gaddag.js"
+  }
+}

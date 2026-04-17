@@ -3,6 +3,8 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
+    "compress:dawg": "bun run scripts/compress-source-to-dawg.ts",
+    "compress:gaddag": "bun run scripts/compress-dawg-to-gaddag.ts",
     "test": "bunx vitest",
     "test:coverage": "bunx vitest run --coverage"
   },
