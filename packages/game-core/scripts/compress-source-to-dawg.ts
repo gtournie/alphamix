@@ -24,7 +24,7 @@ interface Node {
   firstChildIndex: number;
 }
 
-function compressToDawg(words: string[], locale: string): Uint32Array {
+export function compressToDawg(words: string[], locale: string): Uint32Array {
   const SEPARATOR = '+';
   const ALPHABET_SET = new Set<string>();
   for (const word of words) {
@@ -250,4 +250,4 @@ async function main() {
   console.log('\nDone.');
 }
 
-main();
+if (import.meta.main) main();

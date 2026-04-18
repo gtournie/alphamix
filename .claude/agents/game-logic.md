@@ -97,6 +97,11 @@ DAWG and GADDAG share the same Uint32Array encoding:
 - **Dictionary pipeline**: `dictionaries/source/{locale}.js` → `dictionaries/dawg/{locale}.bin` → `dictionaries/gaddag/{locale}.bin`
 - **Dictionary source format**: `{locale}.js` exporting a `Map<string, string>` (word → definition)
 
+## Conventions
+
+- **Bonus-square notation**: always use `W2`, `W3`, `L2`, `L3` (the project's shorthand for double/triple word, double/triple letter). Never use the Hasbro-style `DW`, `TW`, `DL`, `TL` in code, comments, or test descriptions — the user prefers a single consistent notation.
+- **Test comments**: focus on *what behaviour is being tested*, not a walkthrough of the score computation. Keep comments short; let the asserted value speak for itself.
+
 ## Legacy Reference
 
 The previous implementation lives in `src/core/game2/` (not deleted). The legacy agent definition is at `.claude/agents/game-logic-legacy.md`. Consult these if you need historical context, but do NOT modify them.
