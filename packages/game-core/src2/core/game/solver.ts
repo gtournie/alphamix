@@ -156,13 +156,16 @@ export class Board {
 
     for (let i = 0, len = word.length; i < len; i++) {
       const currentCol = col + i;
+      const letterScore = scores[word.charAt(i)] || 0;
 
       // Skip if tile already on board
-      if (grid[row][currentCol] !== EMPTY_ID) continue;
+      if (grid[row][currentCol] !== EMPTY_ID) {
+        horizontalScore += letterScore;
+        continue;
+      }
 
       // New tile placed
       const bonus = bonusGrid[row][currentCol];
-      const letterScore = scores[word.charAt(i)] || 0;
       const tileScore = letterScore * bonus.letterCoeff;
 
       horizontalScore += tileScore;
