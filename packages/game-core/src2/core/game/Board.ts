@@ -266,7 +266,12 @@ export class Board {
     // Symmetry of dec/inc around every recursion is a hard invariant — a
     // missed inc silently skews every subsequent placement attempt.
     const rack = this.rack;
-    const histogram = new Int8Array(this.localeData.alphabetSize);
+    // `.slice()` on the pre-allocated zero-template is a single memcpy on a
+    // packed SMI array — typically faster than `new Array(N).fill(0)` which
+    // allocates + iteratively writes. Same template already used by
+    // `computeVerticalMaskAndScore`. Benched iso vs `new Int8Array(N)` on FR
+    // (27 entries); kept `number[]` for consistency with the cell masks.
+    const histogram = this.localeData.emptyAlphabetMask.slice();
     let blankCount = 0;
     for (let i = 0, len = rack.length; i < len; i++) {
       const id = rack[i];
@@ -278,7 +283,7 @@ export class Board {
     for (let i = 0, len = anchors.length; i < len; i++) {
       const { row, col } = anchors[i];
       // Initially, we walk LEFT from the anchor.
-      this.goLeft(isVertical, moves, row, col, this.localeData.rootIdx, grid[row], histogram, blankCount, rackLen, 0, 0, col);
+      this.goLeft(isVertical, moves, row, col, this.localeData.rootIdx, grid[row], histogram, blankCount, rackLen, 0, 0, false, col);
     }
   }
 
@@ -342,11 +347,12 @@ export class Board {
     col: number,
     nodeIdx: number,
     cells: Cell[],
-    histogram: Int8Array,
+    histogram: number[],
     blankCount: number,
     rackLen: number,
     wordLen: number,
-    usedCount: number
+    usedCount: number,
+    hasWordBlank: boolean
   ): void {
     // Hoist hot fields — see comment on wordBuf/isBlankBuf/isFromRackBuf above.
     const ld = this.localeData;
@@ -362,36 +368,58 @@ export class Board {
       const bonusGrid = isVertical ? INVERTED_BONUS_GRID : BONUS_GRID;
       const score = this.calculateScore(bonusGrid, cells, row, startCol, col, usedCount);
 
-      // Materialise the display word, the uppercase key, and the usedLetters
-      // string in a single pass over the buffers. Replaces the previous
-      // `word.toLocaleUpperCase(locale)` on the Map key (flatten + ICU call)
-      // with a direct `upperAlphabet[charId]` concat — safe because
-      // `upperAlphabet` was already built locale-aware at LocaleData
-      // construction.
-      const upperAlphabet = ld.upperAlphabet;
-      const lowerAlphabet = ld.lowerAlphabet;
-      let word = '';
-      let keyWord = '';
-      let usedLetters = '';
-      for (let p = startCol; p < col; p++) {
-        const cid = wordBuf[p];
-        const upperC = upperAlphabet[cid];
-        keyWord += upperC;
-        if (isBlankBuf[p]) {
-          const lowerC = lowerAlphabet[cid];
-          word += lowerC;
-          if (isFromRackBuf[p]) usedLetters += lowerC;
-        } else {
-          word += upperC;
-          if (isFromRackBuf[p]) usedLetters += upperC;
+      // Fast-path dedup: `word` / `keyWord` / `usedLetters` often coincide.
+      //   - `keyWord === word` when the word contains no blank (rack or pre-
+      //     placed), because `word` is then fully uppercase → `wordBlankCount`
+      //     scalar tracks this.
+      //   - `usedLetters === word` when every character came from the rack
+      //     (no pre-placed walk contributed a char) → `usedCount === wordLen`.
+      // When both hold, build a single string; otherwise build only what's
+      // missing via `String.fromCharCode(...codes)` spread (one C-level call
+      // per string).
+      const upperCodesTbl = ld.upperCharCodeByCharId;
+      const wordCodes = new Array<number>(wordLen);
+      const needKey = hasWordBlank;
+      const needUsed = usedCount !== wordLen;
+      const keyCodes = needKey ? new Array<number>(wordLen) : wordCodes;
+      const usedCodes = needUsed ? new Array<number>(usedCount) : wordCodes;
+      if (needKey || needUsed) {
+        const lowerCodesTbl = ld.lowerCharCodeByCharId;
+        let usedIdx = 0;
+        for (let p = startCol, w = 0; p < col; p++, w++) {
+          const cid = wordBuf[p];
+          const upperCode = upperCodesTbl[cid];
+          if (needKey) keyCodes[w] = upperCode;
+          if (isBlankBuf[p]) {
+            const lowerCode = lowerCodesTbl[cid];
+            wordCodes[w] = lowerCode;
+            if (needUsed && isFromRackBuf[p]) usedCodes[usedIdx++] = lowerCode;
+          } else {
+            wordCodes[w] = upperCode;
+            if (needUsed && isFromRackBuf[p]) usedCodes[usedIdx++] = upperCode;
+          }
+        }
+      } else {
+        // No blanks AND every char from rack → word = keyWord = usedLetters.
+        for (let p = startCol, w = 0; p < col; p++, w++) {
+          wordCodes[w] = upperCodesTbl[wordBuf[p]];
         }
       }
+      const word = String.fromCharCode(...wordCodes);
+      const keyWord = needKey ? String.fromCharCode(...keyCodes) : word;
+      const usedLetters = needUsed ? String.fromCharCode(...usedCodes) : word;
 
       const move = isVertical
         ? { word, usedLetters, score, row: startCol, col: row, dir: 'V' as const }
         : { word, usedLetters, score, row, col: startCol, dir: 'H' as const };
 
-      const normalizedKey = `${keyWord}${move.row}${move.dir}${move.col}`;
+      // Pack (row, col, dir) into a 9-bit int appended to the all-uppercase
+      // keyWord. Unambiguous because keyWord is pure uppercase letters (never
+      // digits), so the digit suffix parses unambiguously. Replaces the 4-part
+      // template literal (2 number→string coercions + 3 concats) with 1
+      // coercion + 1 concat.
+      const posNum = move.row * 32 + move.col * 2 + (isVertical ? 1 : 0);
+      const normalizedKey = keyWord + posNum;
       const existing = moves.get(normalizedKey);
       if (!existing || move.score > existing.score) {
         moves.set(normalizedKey, move);
@@ -408,9 +436,10 @@ export class Board {
       const nextNode = ld.findDataChild(nodeIdx, existingCell.charId);
       if (nextNode !== -1) {
         wordBuf[col] = existingCell.charId;
-        isBlankBuf[col] = existingCell.isBlank ? 1 : 0;
+        const cellIsBlank = existingCell.isBlank;
+        isBlankBuf[col] = cellIsBlank ? 1 : 0;
         isFromRackBuf[col] = 0;
-        this.goRight(isVertical, moves, row, col + 1, nextNode, cells, histogram, blankCount, rackLen, wordLen + 1, usedCount);
+        this.goRight(isVertical, moves, row, col + 1, nextNode, cells, histogram, blankCount, rackLen, wordLen + 1, usedCount, hasWordBlank || cellIsBlank);
       }
       return;
     }
@@ -421,11 +450,14 @@ export class Board {
     // previous revision's comment block.
     // Separator (charId 0) can never be a placement: mask[0] is 0 by
     // construction, but we guard explicitly for robustness.
+    // Loop exit via `curIdx = 0` when hasMore (bit 24) is unset — a single
+    // condition on the `while` instead of an inner `break`.
     const mask = existingCell.mask;
     let curIdx = ld.getChildChainHead(nodeIdx);
     if (curIdx !== 0) {
       isFromRackBuf[col] = 1;
-      while (true) {
+      let hasMore = true;
+      do {
         const nv = gaddag[curIdx];
         const childCharId = nv >>> 26;
         if (childCharId !== SEPARATOR_ID && mask[childCharId]) {
@@ -434,20 +466,20 @@ export class Board {
           if (histogram[childCharId] > 0) {
             histogram[childCharId]--;
             isBlankBuf[col] = 0;
-            this.goRight(isVertical, moves, row, col + 1, curIdx, cells, histogram, blankCount, rackLen - 1, wordLen + 1, usedCount + 1);
+            this.goRight(isVertical, moves, row, col + 1, curIdx, cells, histogram, blankCount, rackLen - 1, wordLen + 1, usedCount + 1, hasWordBlank);
             histogram[childCharId]++;
           }
           // Then as a blank — same GADDAG path, zero letter score.
           if (blankCount > 0) {
             blankCount--;
             isBlankBuf[col] = 1;
-            this.goRight(isVertical, moves, row, col + 1, curIdx, cells, histogram, blankCount, rackLen - 1, wordLen + 1, usedCount + 1);
+            this.goRight(isVertical, moves, row, col + 1, curIdx, cells, histogram, blankCount, rackLen - 1, wordLen + 1, usedCount + 1, true);
             blankCount++;
           }
         }
-        if (!(nv & 0x1000000)) break;
+        hasMore = (nv & 0x1000000) !== 0;
         curIdx++;
-      }
+      } while (hasMore);
     }
   }
 
@@ -458,11 +490,12 @@ export class Board {
     col: number,
     nodeIdx: number,
     cells: Cell[],
-    histogram: Int8Array,
+    histogram: number[],
     blankCount: number,
     rackLen: number,
     wordLen: number,
     usedCount: number,
+    hasWordBlank: boolean,
     anchorCol: number
   ): void {
     // Hoist hot fields — see rationale in goRight.
@@ -475,7 +508,7 @@ export class Board {
     // 1. Can we pivot to the right?
     const separatorIdx = ld.findDataChild(nodeIdx, SEPARATOR_ID);
     if (separatorIdx !== -1 && (col < 0 || cells[col].charId === EMPTY_ID)) {
-      this.goRight(isVertical, moves, row, anchorCol + 1, separatorIdx, cells, histogram, blankCount, rackLen, wordLen, usedCount);
+      this.goRight(isVertical, moves, row, anchorCol + 1, separatorIdx, cells, histogram, blankCount, rackLen, wordLen, usedCount, hasWordBlank);
     }
 
     // 2. Can we continue going left?
@@ -488,9 +521,10 @@ export class Board {
       const nextNodeIdx = ld.findDataChild(nodeIdx, existingCell.charId);
       if (nextNodeIdx !== -1) {
         wordBuf[col] = existingCell.charId;
-        isBlankBuf[col] = existingCell.isBlank ? 1 : 0;
+        const cellIsBlank = existingCell.isBlank;
+        isBlankBuf[col] = cellIsBlank ? 1 : 0;
         isFromRackBuf[col] = 0;
-        this.goLeft(isVertical, moves, row, col - 1, nextNodeIdx, cells, histogram, blankCount, rackLen, wordLen + 1, usedCount, anchorCol);
+        this.goLeft(isVertical, moves, row, col - 1, nextNodeIdx, cells, histogram, blankCount, rackLen, wordLen + 1, usedCount, hasWordBlank || cellIsBlank, anchorCol);
       }
       return;
     }
@@ -500,7 +534,8 @@ export class Board {
     let curIdx = ld.getChildChainHead(nodeIdx);
     if (curIdx !== 0) {
       isFromRackBuf[col] = 1;
-      while (true) {
+      let hasMore = true;
+      do {
         const nv = gaddag[curIdx];
         const childCharId = nv >>> 26;
         if (childCharId !== SEPARATOR_ID && mask[childCharId]) {
@@ -508,19 +543,19 @@ export class Board {
           if (histogram[childCharId] > 0) {
             histogram[childCharId]--;
             isBlankBuf[col] = 0;
-            this.goLeft(isVertical, moves, row, col - 1, curIdx, cells, histogram, blankCount, rackLen - 1, wordLen + 1, usedCount + 1, anchorCol);
+            this.goLeft(isVertical, moves, row, col - 1, curIdx, cells, histogram, blankCount, rackLen - 1, wordLen + 1, usedCount + 1, hasWordBlank, anchorCol);
             histogram[childCharId]++;
           }
           if (blankCount > 0) {
             blankCount--;
             isBlankBuf[col] = 1;
-            this.goLeft(isVertical, moves, row, col - 1, curIdx, cells, histogram, blankCount, rackLen - 1, wordLen + 1, usedCount + 1, anchorCol);
+            this.goLeft(isVertical, moves, row, col - 1, curIdx, cells, histogram, blankCount, rackLen - 1, wordLen + 1, usedCount + 1, true, anchorCol);
             blankCount++;
           }
         }
-        if (!(nv & 0x1000000)) break;
+        hasMore = (nv & 0x1000000) !== 0;
         curIdx++;
-      }
+      } while (hasMore);
     }
   }
 }

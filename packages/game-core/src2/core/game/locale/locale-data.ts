@@ -28,6 +28,10 @@ export default class LocaleData {
   // SEPARATOR_ID (0) is 0. Int32Array for cache-friendly indexed reads in
   // `calculateScore`'s hot loop.
   public readonly tileScoresByCharId: Int32Array;
+  // charId-indexed UTF-16 code points. Used by the move emitter when it
+  // materialises output strings via `String.fromCharCode(...codes)`.
+  public readonly upperCharCodeByCharId: Uint16Array;
+  public readonly lowerCharCodeByCharId: Uint16Array;
   public readonly tileBagNewContent: string[];
   // Pre-allocated "accept every letter" mask, shared across all cells without a
   // vertical neighbor. Most cells in the early game fall into this bucket — sharing
@@ -57,13 +61,20 @@ export default class LocaleData {
     this.tileBagNewContent = tileInfo.TILE_BAG_NEW_CONTENT;
     this.charToIdMap = tileInfo.CHAR_TO_ID;
 
-    // Build the charId-indexed score table. `tileScores` is keyed by upper-case
-    // letter; charId 0 is the separator (no score). Never mutated after build.
+    // Build the charId-indexed score + charCode tables. Never mutated after
+    // construction. `tileScores` is keyed by upper-case letter; charId 0 is
+    // the separator (no score / no code).
     const scoresByCharId = new Int32Array(this.alphabetSize);
+    const upperCodes = new Uint16Array(this.alphabetSize);
+    const lowerCodes = new Uint16Array(this.alphabetSize);
     for (let i = 1; i < this.alphabetSize; i++) {
       scoresByCharId[i] = this.tileScores[this.upperAlphabet[i]] ?? 0;
+      upperCodes[i] = this.upperAlphabet[i].charCodeAt(0);
+      lowerCodes[i] = this.lowerAlphabet[i].charCodeAt(0);
     }
     this.tileScoresByCharId = scoresByCharId;
+    this.upperCharCodeByCharId = upperCodes;
+    this.lowerCharCodeByCharId = lowerCodes;
 
     const fullMask = new Array<number>(this.alphabetSize).fill(1);
     fullMask[0] = 0;
