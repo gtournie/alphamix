@@ -22,6 +22,12 @@ export default class LocaleData {
   public readonly lowerAlphabet: readonly string[];
   public readonly upperAlphabet: readonly string[];
   public readonly tileScores: Record<string, number>;
+  // charId-indexed version of tileScores. Blanks (any charId placed from a
+  // blank rack tile) score 0 — callers must zero the score out when the
+  // placement was a blank; this table only knows the base letter value.
+  // SEPARATOR_ID (0) is 0. Int32Array for cache-friendly indexed reads in
+  // `calculateScore`'s hot loop.
+  public readonly tileScoresByCharId: Int32Array;
   public readonly tileBagNewContent: string[];
   // Pre-allocated "accept every letter" mask, shared across all cells without a
   // vertical neighbor. Most cells in the early game fall into this bucket — sharing
@@ -50,6 +56,14 @@ export default class LocaleData {
     this.tileScores = tileInfo.TILE_SCORES;
     this.tileBagNewContent = tileInfo.TILE_BAG_NEW_CONTENT;
     this.charToIdMap = tileInfo.CHAR_TO_ID;
+
+    // Build the charId-indexed score table. `tileScores` is keyed by upper-case
+    // letter; charId 0 is the separator (no score). Never mutated after build.
+    const scoresByCharId = new Int32Array(this.alphabetSize);
+    for (let i = 1; i < this.alphabetSize; i++) {
+      scoresByCharId[i] = this.tileScores[this.upperAlphabet[i]] ?? 0;
+    }
+    this.tileScoresByCharId = scoresByCharId;
 
     const fullMask = new Array<number>(this.alphabetSize).fill(1);
     fullMask[0] = 0;
@@ -127,6 +141,18 @@ export default class LocaleData {
         throw new Error(`GADDAG char_id ${expected} ("${this.upperAlphabet[expected]}") missing from root in binary for "${this.locale}". The binary was built from a different alphabet — regenerate with \`bun run compress:all\`.`);
       }
     }
+  }
+
+  /**
+   * Returns the absolute index of the first child of `parentNodeIdx`, or 0 if
+   * the node has no children. Same root-tag translation as `findDataChild`.
+   * Exposed for the solver's blank-enumeration fast path, which walks a node's
+   * entire child chain in one sweep and filters by cross-check mask — strictly
+   * faster than N targeted `findDataChild` calls whenever more than one letter
+   * of the alphabet is cross-check-legal at the cell (the common case).
+   */
+  public getChildChainHead(parentNodeIdx: number): number {
+    return parentNodeIdx === this.rootIdx ? 1 : (this.gaddagData[parentNodeIdx] & 0xFFFFFF);
   }
 
   /**

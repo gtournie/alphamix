@@ -31,6 +31,22 @@ export class Board {
   private hAnchors: Anchor[] = [];
   private vAnchors: Anchor[] = [];
 
+  // Scratch buffers for the in-flight word during a `moves()` call. Indexed by
+  // grid column; valid entries occupy [wordStart, wordStart+wordLen). Using
+  // buffers instead of string concatenation in the recursion:
+  //   * removes one ConsString allocation per placement (hot)
+  //   * removes the two flatten operations previously paid on every emit
+  //     (`word.charAt` in `calculateScore`, `toLocaleUpperCase` in the Map key)
+  //   * lets `calculateScore` index a charId-keyed score table instead of a
+  //     hashmap keyed by 1-char string
+  // Backtracking is safe: siblings at the same recursion level write the same
+  // columns — the later write erases the earlier, and no read spans the gap.
+  // Re-used across `moves()` calls, assumed serial (the existing callers all
+  // are). Fixed-size 15: board width.
+  private readonly wordBuf = new Int8Array(15);
+  private readonly isBlankBuf = new Uint8Array(15);
+  private readonly isFromRackBuf = new Uint8Array(15);
+
   // `localeData` is public-readonly so scripts (dump-solver-moves, test-solver)
   // can inspect the alphabet to format output without reaching through an
   // internal `private` field.
@@ -239,50 +255,72 @@ export class Board {
     const grid = isVertical ? this.vGrid : this.hGrid;
     const anchors = isVertical ? this.vAnchors : this.hAnchors;
 
+    // Rack represented as a histogram (count per charId) plus a scalar blank
+    // count. Two wins vs the previous `number[]`:
+    //   1. Duplicate tiles (two '?' or e.g. 'AEES'→two 'E') are processed once
+    //      per distinct letter, not once per position — the solver traversed
+    //      identical sub-trees previously.
+    //   2. No per-branch `new Array(rackLen - 1)` copy: goLeft/goRight mutate
+    //      the histogram in place (dec → recurse → inc) as classical
+    //      backtracking, and blankCount is a scalar copied by value per frame.
+    // Symmetry of dec/inc around every recursion is a hard invariant — a
+    // missed inc silently skews every subsequent placement attempt.
+    const rack = this.rack;
+    const histogram = new Int8Array(this.localeData.alphabetSize);
+    let blankCount = 0;
+    for (let i = 0, len = rack.length; i < len; i++) {
+      const id = rack[i];
+      if (id === BLANK_ID) blankCount++;
+      else histogram[id]++;
+    }
+    const rackLen = rack.length;
+
     for (let i = 0, len = anchors.length; i < len; i++) {
       const { row, col } = anchors[i];
       // Initially, we walk LEFT from the anchor.
-      this.goLeft(isVertical, moves, row, col, this.localeData.rootIdx, grid[row], this.rack, "", "", col);
+      this.goLeft(isVertical, moves, row, col, this.localeData.rootIdx, grid[row], histogram, blankCount, rackLen, 0, 0, col);
     }
   }
 
   private calculateScore(
-    grid: Cell[][],
     bonusGrid: Bonus[][],
     cells: Cell[],
-    word: string,
     row: number,
-    col: number,
-    usedLettersCount: number
+    startCol: number,
+    endCol: number,
+    usedCount: number
   ): number {
-    const scores = this.localeData.tileScores;
+    // Reads directly from the charId buffer: no string allocations, no
+    // per-char hashmap lookup. `isBlankBuf` zeros the score for blanks
+    // (whether pre-placed or just placed) — uniform across both cases, so
+    // no branch on pre-placed status for the letter score.
+    const scores = this.localeData.tileScoresByCharId;
+    const wordBuf = this.wordBuf;
+    const isBlankBuf = this.isBlankBuf;
+    const isFromRackBuf = this.isFromRackBuf;
+
     let horizontalScore = 0;
     let horizontalWordCoeff = 1;
     let verticalScore = 0;
 
-    for (let i = 0, len = word.length; i < len; i++) {
-      const currentCol = col + i;
-      const cell = grid[row][currentCol];
-      // Lowercase chars (blanks — new or pre-placed) miss the uppercase-only
-      // `scores` map and fall to 0 via the `|| 0` default. That alone makes
-      // blank scoring work; we don't branch on `cell.isBlank` here.
-      const letterScore = scores[word.charAt(i)] || 0;
+    for (let p = startCol; p < endCol; p++) {
+      const letterScore = isBlankBuf[p] ? 0 : scores[wordBuf[p]];
 
       // Pre-placed tile: contributes its base letter score (no cell bonus).
-      if (cell.charId !== EMPTY_ID) {
+      if (!isFromRackBuf[p]) {
         horizontalScore += letterScore;
         continue;
       }
 
       // Newly placed tile: letter multiplier applies, word multiplier composes.
-      const bonus = bonusGrid[row][currentCol];
+      const bonus = bonusGrid[row][p];
       const tileScore = letterScore * bonus.letterCoeff;
 
       horizontalScore += tileScore;
       horizontalWordCoeff *= bonus.wordCoeff;
 
       // Cross-word score if there's an existing perpendicular run at this cell.
-      const vertScore = cells[currentCol].verticalScore;
+      const vertScore = cells[p].verticalScore;
       if (vertScore > 0) {
         verticalScore += (vertScore + tileScore) * bonus.wordCoeff;
       }
@@ -291,7 +329,7 @@ export class Board {
     horizontalScore *= horizontalWordCoeff;
 
     // Bingo bonus: all 7 rack tiles used in this move.
-    if (usedLettersCount === TILE_RACK_SIZE) {
+    if (usedCount === TILE_RACK_SIZE) {
       horizontalScore += BINGO_BONUS;
     }
     return horizontalScore + verticalScore;
@@ -304,24 +342,56 @@ export class Board {
     col: number,
     nodeIdx: number,
     cells: Cell[],
-    rack: number[],
-    word: string,
-    usedLetters: string
+    histogram: Int8Array,
+    blankCount: number,
+    rackLen: number,
+    wordLen: number,
+    usedCount: number
   ): void {
-    const grid = isVertical ? this.vGrid : this.hGrid;
+    // Hoist hot fields — see comment on wordBuf/isBlankBuf/isFromRackBuf above.
+    const ld = this.localeData;
+    const gaddag = ld.gaddagData;
+    const wordBuf = this.wordBuf;
+    const isBlankBuf = this.isBlankBuf;
+    const isFromRackBuf = this.isFromRackBuf;
 
     // 1. Emit a move if the current node is an end-of-word AND the next cell is
     // either past the edge or empty (we're not in the middle of a run).
-    if ((this.localeData.gaddagData[nodeIdx] >>> 25) & 0x1 && (col >= 15 || grid[row][col].charId === EMPTY_ID)) {
-      const startCol = col - word.length;
+    if ((gaddag[nodeIdx] >>> 25) & 0x1 && (col >= 15 || cells[col].charId === EMPTY_ID)) {
+      const startCol = col - wordLen;
       const bonusGrid = isVertical ? INVERTED_BONUS_GRID : BONUS_GRID;
-      const score = this.calculateScore(grid, bonusGrid, cells, word, row, startCol, usedLetters.length);
+      const score = this.calculateScore(bonusGrid, cells, row, startCol, col, usedCount);
+
+      // Materialise the display word, the uppercase key, and the usedLetters
+      // string in a single pass over the buffers. Replaces the previous
+      // `word.toLocaleUpperCase(locale)` on the Map key (flatten + ICU call)
+      // with a direct `upperAlphabet[charId]` concat — safe because
+      // `upperAlphabet` was already built locale-aware at LocaleData
+      // construction.
+      const upperAlphabet = ld.upperAlphabet;
+      const lowerAlphabet = ld.lowerAlphabet;
+      let word = '';
+      let keyWord = '';
+      let usedLetters = '';
+      for (let p = startCol; p < col; p++) {
+        const cid = wordBuf[p];
+        const upperC = upperAlphabet[cid];
+        keyWord += upperC;
+        if (isBlankBuf[p]) {
+          const lowerC = lowerAlphabet[cid];
+          word += lowerC;
+          if (isFromRackBuf[p]) usedLetters += lowerC;
+        } else {
+          word += upperC;
+          if (isFromRackBuf[p]) usedLetters += upperC;
+        }
+      }
 
       const move = isVertical
         ? { word, usedLetters, score, row: startCol, col: row, dir: 'V' as const }
         : { word, usedLetters, score, row, col: startCol, dir: 'H' as const };
 
-      const normalizedKey = `${move.word.toLocaleUpperCase(this.localeData.locale)}${move.row}${move.dir}${move.col}`;
+      const normalizedKey = `${keyWord}${move.row}${move.dir}${move.col}`;
       const existing = moves.get(normalizedKey);
       if (!existing || move.score > existing.score) {
         moves.set(normalizedKey, move);
@@ -331,43 +401,52 @@ export class Board {
     // 2. Can we continue going right?
     if (col >= 15) return;
 
-    const existingCell = grid[row][col];
+    const existingCell = cells[col];
 
-    // Walk through a tile already on the board (preserves its original case in `word`).
+    // Walk through a tile already on the board.
     if (existingCell.charId !== EMPTY_ID) {
-      const nextNode = this.localeData.findDataChild(nodeIdx, existingCell.charId);
+      const nextNode = ld.findDataChild(nodeIdx, existingCell.charId);
       if (nextNode !== -1) {
-        this.goRight(isVertical, moves, row, col + 1, nextNode, cells, rack, word + existingCell.char, usedLetters);
+        wordBuf[col] = existingCell.charId;
+        isBlankBuf[col] = existingCell.isBlank ? 1 : 0;
+        isFromRackBuf[col] = 0;
+        this.goRight(isVertical, moves, row, col + 1, nextNode, cells, histogram, blankCount, rackLen, wordLen + 1, usedCount);
       }
       return;
     }
 
-    // Try tiles from the rack.
-    const rackLen = rack.length;
+    // Empty cell — single pass over the GADDAG node's children, trying each
+    // as a real rack tile (if `histogram[childCharId] > 0`) and/or a blank
+    // (if `blankCount > 0`). See rationale on the unified walk in the
+    // previous revision's comment block.
+    // Separator (charId 0) can never be a placement: mask[0] is 0 by
+    // construction, but we guard explicitly for robustness.
     const mask = existingCell.mask;
-
-    for (let i = 0; i < rackLen; i++) {
-      const charId = rack[i];
-      const isBlank = charId === BLANK_ID;
-
-      // Blank: try every letter (skip separator at 0); real tile: try only its charId.
-      const startIdx = isBlank ? 1 : charId;
-      const endIdx = isBlank ? this.localeData.alphabetSize : charId + 1;
-
-      for (let targetCharId = startIdx; targetCharId < endIdx; targetCharId++) {
-        if (!mask[targetCharId]) continue;
-
-        const nextNodeIdx = this.localeData.findDataChild(nodeIdx, targetCharId);
-        if (nextNodeIdx === -1) continue;
-
-        // Manual rack copy — faster than spread.
-        const nextRack = new Array(rackLen - 1);
-        for (let j = 0, k = 0; j < rackLen; j++) {
-          if (j !== i) nextRack[k++] = rack[j];
+    let curIdx = ld.getChildChainHead(nodeIdx);
+    if (curIdx !== 0) {
+      isFromRackBuf[col] = 1;
+      while (true) {
+        const nv = gaddag[curIdx];
+        const childCharId = nv >>> 26;
+        if (childCharId !== SEPARATOR_ID && mask[childCharId]) {
+          wordBuf[col] = childCharId;
+          // Real tile first (score-preserving).
+          if (histogram[childCharId] > 0) {
+            histogram[childCharId]--;
+            isBlankBuf[col] = 0;
+            this.goRight(isVertical, moves, row, col + 1, curIdx, cells, histogram, blankCount, rackLen - 1, wordLen + 1, usedCount + 1);
+            histogram[childCharId]++;
+          }
+          // Then as a blank — same GADDAG path, zero letter score.
+          if (blankCount > 0) {
+            blankCount--;
+            isBlankBuf[col] = 1;
+            this.goRight(isVertical, moves, row, col + 1, curIdx, cells, histogram, blankCount, rackLen - 1, wordLen + 1, usedCount + 1);
+            blankCount++;
+          }
         }
-
-        const c = isBlank ? this.localeData.lowerAlphabet[targetCharId] : this.localeData.upperAlphabet[targetCharId];
-        this.goRight(isVertical, moves, row, col + 1, nextNodeIdx, cells, nextRack, word + c, usedLetters + c);
+        if (!(nv & 0x1000000)) break;
+        curIdx++;
       }
     }
   }
@@ -379,58 +458,68 @@ export class Board {
     col: number,
     nodeIdx: number,
     cells: Cell[],
-    rack: number[],
-    word: string,
-    usedLetters: string,
+    histogram: Int8Array,
+    blankCount: number,
+    rackLen: number,
+    wordLen: number,
+    usedCount: number,
     anchorCol: number
   ): void {
-    const grid = isVertical ? this.vGrid : this.hGrid;
+    // Hoist hot fields — see rationale in goRight.
+    const ld = this.localeData;
+    const gaddag = ld.gaddagData;
+    const wordBuf = this.wordBuf;
+    const isBlankBuf = this.isBlankBuf;
+    const isFromRackBuf = this.isFromRackBuf;
 
     // 1. Can we pivot to the right?
-    const separatorIdx = this.localeData.findDataChild(nodeIdx, SEPARATOR_ID);
-    if (separatorIdx !== -1 && (col < 0 || grid[row][col].charId === EMPTY_ID)) {
-      this.goRight(isVertical, moves, row, anchorCol + 1, separatorIdx, cells, rack, word, usedLetters);
+    const separatorIdx = ld.findDataChild(nodeIdx, SEPARATOR_ID);
+    if (separatorIdx !== -1 && (col < 0 || cells[col].charId === EMPTY_ID)) {
+      this.goRight(isVertical, moves, row, anchorCol + 1, separatorIdx, cells, histogram, blankCount, rackLen, wordLen, usedCount);
     }
 
     // 2. Can we continue going left?
     if (col < 0) return;
 
-    const existingCell = grid[row][col];
+    const existingCell = cells[col];
 
-    // Case A: pre-placed tile — use its charId to walk the GADDAG, preserve case in `word`.
+    // Case A: pre-placed tile — walk the GADDAG with its charId.
     if (existingCell.charId !== EMPTY_ID) {
-      const nextNodeIdx = this.localeData.findDataChild(nodeIdx, existingCell.charId);
+      const nextNodeIdx = ld.findDataChild(nodeIdx, existingCell.charId);
       if (nextNodeIdx !== -1) {
-        this.goLeft(isVertical, moves, row, col - 1, nextNodeIdx, cells, rack, existingCell.char + word, usedLetters, anchorCol);
+        wordBuf[col] = existingCell.charId;
+        isBlankBuf[col] = existingCell.isBlank ? 1 : 0;
+        isFromRackBuf[col] = 0;
+        this.goLeft(isVertical, moves, row, col - 1, nextNodeIdx, cells, histogram, blankCount, rackLen, wordLen + 1, usedCount, anchorCol);
       }
       return;
     }
 
-    // Case B: empty cell — try each tile in the rack.
-    const rackLen = rack.length;
+    // Case B: empty cell — unified child-chain walk (see rationale in goRight).
     const mask = existingCell.mask;
-
-    for (let i = 0; i < rackLen; i++) {
-      const charId = rack[i];
-      const isBlank = charId === BLANK_ID;
-
-      const startIdx = isBlank ? 1 : charId;
-      const endIdx = isBlank ? this.localeData.alphabetSize : charId + 1;
-
-      for (let targetCharId = startIdx; targetCharId < endIdx; targetCharId++) {
-        if (!mask[targetCharId]) continue;
-
-        const nextNodeIdx = this.localeData.findDataChild(nodeIdx, targetCharId);
-        if (nextNodeIdx === -1) continue;
-
-        // Manual rack copy — faster than spread.
-        const nextRack = new Array(rackLen - 1);
-        for (let j = 0, k = 0; j < rackLen; j++) {
-          if (j !== i) nextRack[k++] = rack[j];
+    let curIdx = ld.getChildChainHead(nodeIdx);
+    if (curIdx !== 0) {
+      isFromRackBuf[col] = 1;
+      while (true) {
+        const nv = gaddag[curIdx];
+        const childCharId = nv >>> 26;
+        if (childCharId !== SEPARATOR_ID && mask[childCharId]) {
+          wordBuf[col] = childCharId;
+          if (histogram[childCharId] > 0) {
+            histogram[childCharId]--;
+            isBlankBuf[col] = 0;
+            this.goLeft(isVertical, moves, row, col - 1, curIdx, cells, histogram, blankCount, rackLen - 1, wordLen + 1, usedCount + 1, anchorCol);
+            histogram[childCharId]++;
+          }
+          if (blankCount > 0) {
+            blankCount--;
+            isBlankBuf[col] = 1;
+            this.goLeft(isVertical, moves, row, col - 1, curIdx, cells, histogram, blankCount, rackLen - 1, wordLen + 1, usedCount + 1, anchorCol);
+            blankCount++;
+          }
         }
-
-        const c = isBlank ? this.localeData.lowerAlphabet[targetCharId] : this.localeData.upperAlphabet[targetCharId];
-        this.goLeft(isVertical, moves, row, col - 1, nextNodeIdx, cells, nextRack, c + word, c + usedLetters, anchorCol);
+        if (!(nv & 0x1000000)) break;
+        curIdx++;
       }
     }
   }
