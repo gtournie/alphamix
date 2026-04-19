@@ -37,6 +37,34 @@ GaddagNode* node_arena = NULL;
 size_t node_count = 0;
 size_t node_capacity = 0;
 
+// Set by any allocation helper that fails. Checked by callers before they touch
+// the global buffers, and by `convert_dawg_to_gaddag` before returning. Keeps
+// error propagation local (no bool returns threaded through every function) at
+// the cost of a single branch per caller after each grow.
+static bool conversion_failed = false;
+
+// Grows `node_arena` when `node_count` is about to hit `node_capacity`. The JS-side
+// estimate (Σ len·(len+1)) is normally a loose upper bound thanks to GADDAG dedup,
+// but it omits pre-seeded nodes (root self + `alphabet_len - 1` root children +
+// separator nodes), and can be wrong under pathological dictionaries. Safer to
+// grow on demand than to hope. All in-arena references are indices, not pointers,
+// so a realloc is safe as long as no caller has cached a `&node_arena[i]` pointer
+// across the call — which is the case in the insertion paths that call this.
+//
+// On realloc failure we write through a temp pointer (so the old arena isn't
+// orphaned by an overwrite with NULL) and set `conversion_failed`. `node_capacity`
+// is bumped only AFTER a successful realloc; without this, the next ensure_node
+// would see `node_count < node_capacity` and skip the grow → silent NULL deref.
+static inline void ensure_node(void) {
+    if (unlikely(node_count >= node_capacity)) {
+        size_t new_cap = node_capacity == 0 ? 1 : node_capacity * 2;
+        GaddagNode* tmp = realloc(node_arena, new_cap * sizeof(GaddagNode));
+        if (unlikely(!tmp)) { conversion_failed = true; return; }
+        node_arena = tmp;
+        node_capacity = new_cap;
+    }
+}
+
 // Lookup table unique à la place de 4 tableaux multidimensionnels
 // Niveau 0: [0, MAX_ALPHABET)
 // Niveau 1: [MAX_ALPHABET, MAX_ALPHABET + MAX_ALPHABET^2)
@@ -52,6 +80,16 @@ uint32_t* lookup_table = NULL;
 uint32_t* output_buffer = NULL;
 size_t output_size = 0;
 size_t output_capacity = 0;
+
+// Input-buffer ownership tracking.
+// `output_buffer` starts as the caller's input (see `convert_dawg_to_gaddag`), so
+// any `realloc(output_buffer, ...)` that MOVES the buffer effectively frees the
+// input. The JS wrapper needs to know this to avoid double-freeing inPtr on
+// failure paths. These two statics are set at convert entry and updated inside
+// `ensure_out`; the convert function copies `input_was_freed` into the out-param
+// `*input_consumed` before every return.
+static uint32_t* input_original_ptr = NULL;
+static int input_was_freed = 0;
 
 typedef struct {
     uint32_t node_index;
@@ -147,6 +185,15 @@ void reset_memory() {
     lookup_table = NULL;
     node_count = 0; node_capacity = 0; output_size = 0; output_capacity = 0;
     hash_size = 0; hash_entry_count = 0; hash_entry_capacity = 0;
+    // Ownership/failure flags must live here, alongside the allocator state they
+    // refer to. Previously `convert_dawg_to_gaddag` reset them a few lines AFTER
+    // calling reset_memory() — any code added between those two points (progress
+    // callback, logging, future early-exit) would observe stale values from the
+    // previous run. `input_original_ptr` is re-set to the caller's `input` on
+    // entry, but zeroed here as a defensive default.
+    conversion_failed = false;
+    input_was_freed = 0;
+    input_original_ptr = NULL;
 }
 
 
@@ -206,6 +253,8 @@ void insert_rotated_path(const uint8_t* word, int total_len, int split) {
         if (i == 0) {
             found = lookup_table[LEVEL_0_BASE + target];
             if (unlikely(!found)) {
+                ensure_node();
+                if (unlikely(conversion_failed)) return;
                 found = node_count;
                 node_arena[node_count++] = node_templates[target];
                 lookup_table[LEVEL_0_BASE + target] = found;
@@ -217,6 +266,8 @@ void insert_rotated_path(const uint8_t* word, int total_len, int split) {
         } else if (i == 1) {
             found = l1_base[target];
             if (unlikely(!found)) {
+                ensure_node();
+                if (unlikely(conversion_failed)) return;
                 found = node_count;
                 node_arena[node_count++] = node_templates[target];
                 l1_base[target] = found;
@@ -228,6 +279,8 @@ void insert_rotated_path(const uint8_t* word, int total_len, int split) {
         } else if (i == 2) {
             found = l2_base[target];
             if (unlikely(!found)) {
+                ensure_node();
+                if (unlikely(conversion_failed)) return;
                 found = node_count;
                 node_arena[node_count++] = node_templates[target];
                 l2_base[target] = found;
@@ -239,6 +292,8 @@ void insert_rotated_path(const uint8_t* word, int total_len, int split) {
         } else if (i == 3) {
             found = l3_base[target];
             if (unlikely(!found)) {
+                ensure_node();
+                if (unlikely(conversion_failed)) return;
                 found = node_count;
                 node_arena[node_count++] = node_templates[target];
                 l3_base[target] = found;
@@ -249,19 +304,21 @@ void insert_rotated_path(const uint8_t* word, int total_len, int split) {
             uint32_t child = node_arena[current].first_child;
             uint32_t prev = 0;
             while (child != 0) {
-                if (get_char_id(node_arena[child].packed) == target) { 
-                    found = child; 
+                if (get_char_id(node_arena[child].packed) == target) {
+                    found = child;
                     if (prev != 0) {
                         node_arena[prev].next_sibling = node_arena[child].next_sibling;
                         node_arena[child].next_sibling = node_arena[current].first_child;
                         node_arena[current].first_child = child;
                     }
-                    break; 
+                    break;
                 }
                 prev = child;
                 child = node_arena[child].next_sibling;
             }
             if (!found) {
+                ensure_node();
+                if (unlikely(conversion_failed)) return;
                 found = node_count;
                 node_arena[node_count++] = node_templates[target];
                 node_arena[found].next_sibling = node_arena[current].first_child;
@@ -282,9 +339,11 @@ void insert_rotated_path(const uint8_t* word, int total_len, int split) {
 
 void init_separator_nodes() {
     for (int i = 0; i < MAX_ALPHABET; i++) separator_nodes[i] = 0;
-    for (int i = 1; i <= (int)alphabet_len; i++) {
+    for (int i = 1; i < (int)alphabet_len; i++) {
         uint32_t root = *lookup_level0(i);
         if (likely(root)) {
+            ensure_node();
+            if (unlikely(conversion_failed)) return;
             uint32_t sep = node_count;
             node_arena[node_count++] = node_templates[SEPARATOR_ID];
             *lookup_level1(i, SEPARATOR_ID) = sep;
@@ -296,6 +355,13 @@ void init_separator_nodes() {
 }
 
 void traverse_source(uint32_t* data, uint32_t index, uint32_t max_len, uint8_t* word, int depth) {
+    // Guard `word[depth] = …` below: `word_buffer` is declared `uint8_t[MAX_WORD_LEN]`
+    // so valid depths are 0..MAX_WORD_LEN-1. A malformed DAWG with a chain deeper
+    // than MAX_WORD_LEN would otherwise overflow the stack buffer and corrupt
+    // callers' frames. Note: we silently drop any word longer than MAX_WORD_LEN;
+    // that's acceptable because dictionary sources are bounded to the grid size (15).
+    if (depth >= MAX_WORD_LEN) return;
+    if (unlikely(conversion_failed)) return;
     while (true) {
         // if (index > progress_max_index) {
         //     progress_max_index = index;
@@ -306,18 +372,20 @@ void traverse_source(uint32_t* data, uint32_t index, uint32_t max_len, uint8_t* 
         uint32_t child_ptr = val & 0xFFFFFF;
 
         word[depth] = (val >> 26) & 0x3F; // c_idx
-        
+
         if ((val >> 25) & 1) {
             int word_len = depth + 2;
             for (int split = 1; split < word_len; split++) {
                 insert_rotated_path(word, word_len, split);
+                if (unlikely(conversion_failed)) return;
             }
         }
 
         if (child_ptr != 0) {
             traverse_source(data, child_ptr, max_len, word, depth + 1);
+            if (unlikely(conversion_failed)) return;
         }
-        
+
         if (!((val >> 24) & 1)) break;
         index++;
     }
@@ -328,6 +396,7 @@ void init_hash_map(size_t nodes) {
     hash_buckets = calloc(hash_size, sizeof(uint32_t));
     hash_entry_capacity = nodes;
     hash_entries = malloc(hash_entry_capacity * sizeof(HashEntry));
+    if (unlikely(!hash_buckets || !hash_entries)) { conversion_failed = true; return; }
     hash_entry_count = 1;
 }
 
@@ -398,8 +467,11 @@ uint32_t minify(uint32_t idx) {
     }
     uint32_t nid = hash_entry_count++;
     if (unlikely(nid >= hash_entry_capacity)) {
-        hash_entry_capacity *= 2;
-        hash_entries = realloc(hash_entries, hash_entry_capacity * sizeof(HashEntry));
+        size_t new_cap = hash_entry_capacity * 2;
+        HashEntry* tmp = realloc(hash_entries, new_cap * sizeof(HashEntry));
+        if (unlikely(!tmp)) { conversion_failed = true; return 0; }
+        hash_entries = tmp;
+        hash_entry_capacity = new_cap;
     }
     hash_entries[nid].node_index = idx;
     hash_entries[nid].next = hash_buckets[bucket];
@@ -408,10 +480,23 @@ uint32_t minify(uint32_t idx) {
     return nid;
 }
 
+// Same realloc-safety treatment as `ensure_node`: route through a temp pointer so
+// the old buffer isn't leaked on failure, and only bump capacity after success.
+// On failure, the caller's input is still live (realloc didn't move it), so we
+// leave `input_was_freed` alone — the JS wrapper will free `inPtr` itself.
 void ensure_out(size_t n) {
     if (unlikely(output_size + n >= output_capacity)) {
         size_t new_cap = (output_capacity == 0) ? 1000000 : output_capacity * 2;
-        output_buffer = realloc(output_buffer, new_cap * sizeof(uint32_t));
+        uint32_t* old_buf = output_buffer;
+        uint32_t* tmp = realloc(output_buffer, new_cap * sizeof(uint32_t));
+        if (unlikely(!tmp)) { conversion_failed = true; return; }
+        output_buffer = tmp;
+        // If realloc moved the buffer AND the old location was the caller's input,
+        // that input buffer was freed by realloc. Record it so the JS wrapper won't
+        // try to `_free(inPtr)` later — that would be a double-free.
+        if (output_buffer != old_buf && old_buf == input_original_ptr) {
+            input_was_freed = 1;
+        }
         output_capacity = new_cap;
     }
 }
@@ -433,6 +518,7 @@ uint32_t serialize(uint32_t mid, uint32_t* v) {
     }
     if (unlikely(count == 0)) { v[mid] = 1; return 0; }
     ensure_out(count);
+    if (unlikely(conversion_failed)) return 0;
     uint32_t pos = output_size;
     output_size += count;
     v[mid] = pos + 1;
@@ -449,17 +535,70 @@ uint32_t serialize(uint32_t mid, uint32_t* v) {
     return pos;
 }
 
-uint32_t* convert_dawg_to_gaddag(uint32_t* input, int in_len, int* out_len) {
+/**
+ * Converts a DAWG (input) to a GADDAG (output). Reuses the input buffer as the
+ * initial output buffer to avoid doubling the peak memory footprint.
+ *
+ * Ownership contract with the JS caller:
+ *   - On SUCCESS (returns non-NULL): the returned pointer is the owned buffer.
+ *     If `*input_consumed == 0`, it equals `input` (no realloc happened); if
+ *     `*input_consumed == 1`, realloc moved the buffer and the original input
+ *     address has been freed. Either way, the JS caller frees exactly the
+ *     returned pointer.
+ *   - On FAILURE (returns NULL): the JS caller reads `*input_consumed` and
+ *     frees `input` iff it is 0. `*input_consumed == 1` means realloc took
+ *     ownership at some point before the failure, so `input` is dangling.
+ */
+// Sanity cap on `estimated_nodes` read from the (untrusted) DAWG header. 2^28
+// nodes * 12 bytes/node = 3 GB, well beyond any realistic dictionary — anything
+// bigger is a corrupted or adversarial input. Gives us a cheap bound on the
+// initial `malloc(estimated_nodes * sizeof(GaddagNode))` without rejecting any
+// realistic alphabet.
+#define MAX_ESTIMATED_NODES (1u << 28)
+
+uint32_t* convert_dawg_to_gaddag(uint32_t* input, int in_len, int alphabet_len_arg, int* input_consumed, int* out_len) {
+    // reset_memory() now also zeros conversion_failed / input_was_freed /
+    // input_original_ptr — we only need to set `input_original_ptr` to the
+    // caller-provided `input` here. Any realloc inside ensure_out that MOVES
+    // output_buffer away from input_original_ptr will flip input_was_freed to 1.
     reset_memory();
     progress_max_index = 0;
     minified_count = 0;
     last_reported_percent = -5;
     report_progress(0);
 
-    alphabet_len = input[1];
-    uint32_t estimated_nodes = input[alphabet_len + 2];
-    
-    node_arena = malloc(estimated_nodes * sizeof(GaddagNode));
+    input_original_ptr = input;
+    *input_consumed = 0;
+
+    // Hard cap: MAX_ALPHABET sizes the static lookup tables (node_templates,
+    // separator_nodes, last_split_* caches). An alphabet bigger than this would
+    // overrun them. The JS wrapper mirrors this check and throws with a proper
+    // error message; the C side returns NULL as a defense in depth.
+    if (alphabet_len_arg <= 0 || alphabet_len_arg > MAX_ALPHABET) {
+        *input_consumed = input_was_freed;
+        return NULL;
+    }
+    // Input sanity: need at least the header word, and `estimated_nodes` must be
+    // a believable allocation target. A malformed .bin with `in_len < 1` would
+    // read past the buffer; `estimated_nodes == 0` would malloc(0) (impl-defined);
+    // a huge value would either OOM gracefully via malloc or, in theory, succeed
+    // and blow memory on subsequent allocs.
+    if (in_len < 1) {
+        *input_consumed = input_was_freed;
+        return NULL;
+    }
+    alphabet_len = (uint8_t)alphabet_len_arg;
+    // DAWG layout: [estimatedGaddagNodes, ...nodes]. Pointers inside nodes are
+    // absolute indices into this same buffer, so root's first child lives at 1
+    // (and position 0 is the estimated-nodes header word).
+    uint32_t estimated_nodes = input[0];
+    if (estimated_nodes == 0 || estimated_nodes > MAX_ESTIMATED_NODES) {
+        *input_consumed = input_was_freed;
+        return NULL;
+    }
+
+    node_arena = malloc((size_t)estimated_nodes * sizeof(GaddagNode));
+    if (!node_arena) goto fail;
     node_capacity = estimated_nodes;
 
     // Reuse input buffer for output; grow if needed.
@@ -469,6 +608,7 @@ uint32_t* convert_dawg_to_gaddag(uint32_t* input, int in_len, int* out_len) {
 
     // Allouer la table de lookup unique au lieu de 4 tableaux
     lookup_table = calloc(LOOKUP_TABLE_SIZE, sizeof(uint32_t));
+    if (!lookup_table) goto fail;
 
     memset(last_split_len, 0, sizeof(last_split_len));
 
@@ -476,7 +616,10 @@ uint32_t* convert_dawg_to_gaddag(uint32_t* input, int in_len, int* out_len) {
     node_arena[0] = node_templates[0];
     node_count = 1;
 
-    for (int i = 1; i <= alphabet_len; i++) {
+    // alphabet_len = ID_TO_CHAR.length (letters + separator). Real letter ids are [1..alphabet_len-1].
+    for (int i = 1; i < alphabet_len; i++) {
+        ensure_node();
+        if (conversion_failed) goto fail;
         uint32_t found = node_count;
         node_arena[node_count++] = node_templates[i];
         *lookup_level0(i) = found;
@@ -484,31 +627,43 @@ uint32_t* convert_dawg_to_gaddag(uint32_t* input, int in_len, int* out_len) {
         node_arena[0].first_child = found;
     }
     init_separator_nodes();
+    if (conversion_failed) goto fail;
 
     uint8_t word_buffer[MAX_WORD_LEN];
-    traverse_source(input, alphabet_len + 3, (uint32_t)in_len, word_buffer, 0);
+    traverse_source(input, 1, (uint32_t)in_len, word_buffer, 0);
+    if (conversion_failed) goto fail;
 
     // Libérer la table de lookup immédiatement après utilisation
     free(lookup_table);
     lookup_table = NULL;
 
     init_hash_map(node_count);
+    if (conversion_failed) goto fail;
     uint32_t rmid = minify(0);
-    
+    if (conversion_failed) goto fail;
+
     // hash_buckets n'est plus utilisé après minify, libérer immédiatement
     free(hash_buckets);
     hash_buckets = NULL;
 
-    output_size = alphabet_len + 2;
+    // Reserve output_buffer[0] as a sentinel so that "pointer == 0" in any
+    // serialized node unambiguously means "no children". Root's first child
+    // sibling chain then starts at index 1 (== rootIdx on the JS side).
+    ensure_out(1);
+    if (conversion_failed) goto fail;
+    output_buffer[0] = 0;
+    output_size = 1;
 
     uint32_t* v = calloc(hash_entry_count + 1, sizeof(uint32_t));
+    if (!v) goto fail;
     serialize(rmid, v);
     free(v);
-    
+    if (conversion_failed) goto fail;
+
     // Libérer hash_entries après serialize
     free(hash_entries);
     hash_entries = NULL;
-    
+
     // Libérer node_arena après sérialisation (output_buffer reuse input, pas node_arena)
     free(node_arena);
     node_arena = NULL;
@@ -516,5 +671,38 @@ uint32_t* convert_dawg_to_gaddag(uint32_t* input, int in_len, int* out_len) {
     node_capacity = 0;
 
     *out_len = output_size;
-    return output_buffer;
+    *input_consumed = input_was_freed;
+    // Transfer ownership of `output_buffer` to the caller. Null-out the global
+    // so a subsequent convert run's `reset_memory()` doesn't re-`free()` this
+    // pointer — the JS wrapper calls `_free(outPtr)` after copying the data
+    // out, which would otherwise collide with that free into a double-free.
+    uint32_t* ret = output_buffer;
+    output_buffer = NULL;
+    output_capacity = 0;
+    output_size = 0;
+    return ret;
+
+fail:
+    // Consolidated error epilogue. Frees any partially-allocated state while
+    // preserving the `input_consumed` contract: if realloc ever moved the output
+    // buffer away from the caller's input, input_was_freed == 1 and `output_buffer`
+    // now owns the memory that came from `input`. Freeing `output_buffer` here is
+    // therefore safe; the JS wrapper will see `input_consumed == 1` and skip its
+    // own `_free(inPtr)` to avoid a double-free.
+    //
+    // If realloc never moved, `output_buffer == input` (the caller's memory). We
+    // must NOT free it here — the JS wrapper, seeing `input_consumed == 0`, will
+    // free `inPtr` itself. Detect this case by comparing against `input_original_ptr`.
+    if (output_buffer && output_buffer != input_original_ptr) {
+        free(output_buffer);
+    }
+    output_buffer = NULL;
+    output_capacity = 0;
+    output_size = 0;
+    if (lookup_table) { free(lookup_table); lookup_table = NULL; }
+    if (node_arena) { free(node_arena); node_arena = NULL; node_count = 0; node_capacity = 0; }
+    if (hash_buckets) { free(hash_buckets); hash_buckets = NULL; }
+    if (hash_entries) { free(hash_entries); hash_entries = NULL; }
+    *input_consumed = input_was_freed;
+    return NULL;
 }

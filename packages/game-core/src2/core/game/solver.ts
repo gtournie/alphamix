@@ -6,7 +6,11 @@ import { Bonus, CellConstraint, Move } from "./types";
 export class Board {
   private vGrid: number[][];
 
-  constructor(private localeData: LocaleData, private hGrid: number[][], private rack: number[]) {
+  // `localeData` is public-readonly so scripts (dump-solver-moves, test-solver)
+  // can inspect the alphabet to format output without reaching through an
+  // internal `private` field. Everything the solver itself reads from it is
+  // already readonly (upperAlphabet, lowerAlphabet, tileScores, …).
+  constructor(public readonly localeData: LocaleData, private hGrid: number[][], private rack: number[]) {
     this.vGrid = Board.createGrid((row, col) => hGrid[col][row]);
   }
 
@@ -28,7 +32,10 @@ export class Board {
       const isOccupied = grid[r][c] !== EMPTY_ID;
 
       if (isOccupied) {
-        constraints.push({ isAnchor: false, mask: 0, verticalScore: 0 });
+        // `EMPTY_MASK` would alias across all occupied cells — safe since nobody
+        // writes to the cell's `mask` after this, but we keep one instance per
+        // push to stay consistent with the "CellConstraint owns its mask" story.
+        constraints.push({ isAnchor: false, mask: [], verticalScore: 0 });
         continue;
       }
 
@@ -39,9 +46,12 @@ export class Board {
       const hasHorizontalNeighbor = (c > 0 && grid[r][c - 1] !== EMPTY_ID) ||
         (c < 14 && grid[r][c + 1] !== EMPTY_ID);
 
+      // No vertical neighbor ⇒ every letter is allowed. We alias a single shared
+      // "accept all" array held on LocaleData (see `fullAlphabetMask`) so we don't
+      // allocate one per cell — most cells in the early game hit this branch.
       const [mask, verticalScore] = hasVerticalNeighbor
         ? this.computeVerticalConstraint(grid, r, c)
-        : [0xFFFFFFFF, 0];
+        : [this.localeData.fullAlphabetMask, 0];
 
       constraints.push({
         isAnchor: hasVerticalNeighbor || hasHorizontalNeighbor || r === 7 && c === 7,
@@ -53,29 +63,52 @@ export class Board {
   }
 
   /**
-   * Computes a bitmask of all letters that can be placed at (r, c)
-   * to form a valid vertical word, and the score of existing tiles.
-   * Returns [mask, verticalScore]
+   * Computes a 0/1 mask indexed by charId, listing the letters that can be placed
+   * at (r, c) to form a valid vertical word, and the score of existing tiles.
+   * Returns [mask, verticalScore].
+   *
+   * A plain `number[]` is deliberate: V8 stores small-int arrays in a packed SMI
+   * layout that benchmarks match (or beat) TypedArray for this size, and — unlike
+   * a 32-bit bitmask — it scales to any alphabet we'd ever ship (Slovak → 42).
    */
-  private computeVerticalConstraint(grid: number[][], r: number, c: number): [number, number] {
+  private computeVerticalConstraint(grid: number[][], r: number, c: number): [number[], number] {
     const gaddag = this.localeData.gaddagData;
-    const alphabet = this.localeData.alphabet;
+    const alphabet = this.localeData.upperAlphabet;
     const scores = this.localeData.tileScores;
+    const alphabetSize = this.localeData.alphabetSize;
     let currentIdx = this.localeData.rootIdx;
     let verticalScore = 0;
 
-    // Check left part of word
+    // Fresh mask per call, sliced from the pre-allocated all-zeros template on
+    // LocaleData. `.slice()` is a single memcpy on a packed SMI array — faster
+    // than `new Array(N).fill(0)` which allocates and iteratively writes.
+    const mask = this.localeData.emptyAlphabetMask.slice();
+
+    // Check left part of word. Bail on any lookup failure — no placement is
+    // possible once the left context fails to form a valid GADDAG reverse
+    // prefix. Bailing directly (rather than `break` + post-loop recheck) also
+    // avoids a subtle trap: a first-iter failure would leave `currR` at `r-1`,
+    // making the post-loop `hasLeftPart = (currR < r - 1)` evaluate to false
+    // while there IS a tile above — the mask still came out correct by luck
+    // (via `Uint32Array[-1] === undefined` → -1), but the logic was lying
+    // about the state of the world.
     let currR = r - 1;
     while (currR >= 0 && grid[currR][c] !== EMPTY_ID) {
       const charId = grid[currR][c];
-      verticalScore += scores[alphabet[charId]] || 0;
       currentIdx = this.localeData.findDataChild(currentIdx, charId);
+      if (currentIdx === -1) return [mask, verticalScore];
+      verticalScore += scores[alphabet[charId]] || 0; // count only successful walks
       currR--;
     }
 
-    // If found left part, we check there's a separator next
-    const hasLeftPart = currentIdx !== this.localeData.rootIdx;
-    if (hasLeftPart) currentIdx = this.localeData.findDataChild(currentIdx, SEPARATOR_ID);
+    // "We walked at least one letter" iff currR advanced past its starting
+    // value. Only reachable on success: any failure inside the loop returned
+    // above, so `currentIdx` here is guaranteed non-`-1`.
+    const hasLeftPart = currR < r - 1;
+    if (hasLeftPart) {
+      currentIdx = this.localeData.findDataChild(currentIdx, SEPARATOR_ID);
+      if (currentIdx === -1) return [mask, verticalScore];
+    }
 
     // Check right part score
     currR = r + 1;
@@ -84,9 +117,8 @@ export class Board {
       verticalScore += scores[alphabet[charId]] || 0;
     }
 
-    // Check every letter of the alphabet (except separator at index 0)
-    let mask = 0;
-    forLoop: for (let charId = 1, len = this.localeData.alphabetSize; charId < len; charId++) {
+    // Check every letter of the alphabet (except separator at index 0).
+    forLoop: for (let charId = 1; charId < alphabetSize; charId++) {
       let charIdx = this.localeData.findDataChild(currentIdx, charId);
 
       if (charIdx === -1) continue;
@@ -101,7 +133,7 @@ export class Board {
 
       // check end of word - inline bitshift
       if ((gaddag[charIdx] >>> 25) & 0x1) {
-        mask |= (1 << charId);
+        mask[charId] = 1;
       }
     }
     return [mask, verticalScore];
@@ -226,14 +258,14 @@ export class Board {
     if (existingTile !== EMPTY_ID) {
       const nextNode = this.localeData.findDataChild(nodeIdx, existingTile);
       if (nextNode !== -1) {
-        this.goRight(isVertical, moves, row, col + 1, nextNode, constraints, rack, word + this.localeData.alphabet[existingTile], usedLetters);
+        this.goRight(isVertical, moves, row, col + 1, nextNode, constraints, rack, word + this.localeData.upperAlphabet[existingTile], usedLetters);
       }
       return;
     }
 
     // Try tiles from rack
     const rackLen = rack.length;
-    const constraintMask = constraints[col].mask;
+    const mask = constraints[col].mask;
 
     for (let i = 0; i < rackLen; i++) {
       const charId = rack[i];
@@ -244,7 +276,7 @@ export class Board {
       const endIdx = isBlank ? this.localeData.alphabetSize : charId + 1;
 
       for (let targetCharId = startIdx; targetCharId < endIdx; targetCharId++) {
-        if (!(constraintMask & (1 << targetCharId))) continue;
+        if (!mask[targetCharId]) continue;
 
         const nextNodeIdx = this.localeData.findDataChild(nodeIdx, targetCharId);
         if (nextNodeIdx === -1) continue;
@@ -255,7 +287,7 @@ export class Board {
           if (j !== i) nextRack[k++] = rack[j];
         }
 
-        const c = isBlank ? this.localeData.lowerAlphabet[targetCharId] : this.localeData.alphabet[targetCharId];
+        const c = isBlank ? this.localeData.lowerAlphabet[targetCharId] : this.localeData.upperAlphabet[targetCharId];
         this.goRight(isVertical, moves, row, col + 1, nextNodeIdx, constraints, nextRack, word + c, usedLetters + c);
       }
     }
@@ -290,14 +322,14 @@ export class Board {
     if (existingTile !== EMPTY_ID) {
       const nextNodeIdx = this.localeData.findDataChild(nodeIdx, existingTile);
       if (nextNodeIdx !== -1) {
-        this.goLeft(isVertical, moves, row, col - 1, nextNodeIdx, constraints, rack, this.localeData.alphabet[existingTile] + word, usedLetters, anchorCol);
+        this.goLeft(isVertical, moves, row, col - 1, nextNodeIdx, constraints, rack, this.localeData.upperAlphabet[existingTile] + word, usedLetters, anchorCol);
       }
       return;
     }
 
     // Case B: The cell is empty, we try letters from our rack
     const rackLen = rack.length;
-    const constraintMask = constraints[col].mask;
+    const mask = constraints[col].mask;
 
     for (let i = 0; i < rackLen; i++) {
       const charId = rack[i];
@@ -308,7 +340,7 @@ export class Board {
       const endIdx = isBlank ? this.localeData.alphabetSize : charId + 1;
 
       for (let targetCharId = startIdx; targetCharId < endIdx; targetCharId++) {
-        if (!(constraintMask & (1 << targetCharId))) continue;
+        if (!mask[targetCharId]) continue;
 
         const nextNodeIdx = this.localeData.findDataChild(nodeIdx, targetCharId);
         if (nextNodeIdx === -1) continue;
@@ -319,7 +351,7 @@ export class Board {
           if (j !== i) nextRack[k++] = rack[j];
         }
 
-        const c = isBlank ? this.localeData.lowerAlphabet[targetCharId] : this.localeData.alphabet[targetCharId];
+        const c = isBlank ? this.localeData.lowerAlphabet[targetCharId] : this.localeData.upperAlphabet[targetCharId];
         this.goLeft(isVertical, moves, row, col - 1, nextNodeIdx, constraints, nextRack, c + word, c + usedLetters, anchorCol);
       }
     }

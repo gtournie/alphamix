@@ -14,10 +14,12 @@ import fs from 'fs';
 import path from 'path';
 import { Board } from '../src2/core/game/solver';
 import LocaleData from '../src2/core/game/locale/locale-data';
-import { BLANK_ID, EMPTY_ID } from '../src2/core/game/const';
+import { BLANK_ID, EMPTY_ID, TILE_BLANK } from '../src2/core/game/const';
 import { sortMoves } from '../src2/core/game/__test-utils__/solver-fixtures';
 
-const GADDAG_PATH = path.resolve(import.meta.dir, '../dictionaries/gaddag/fr.bin');
+const LOCALE = 'fr';
+
+const GADDAG_PATH = path.resolve(import.meta.dir, `../dictionaries/gaddag/${LOCALE}.bin`);
 const FIXTURE_PATH = path.resolve(
   import.meta.dir,
   '../src2/core/game/__test-utils__/h1-moves.json'
@@ -29,15 +31,13 @@ const gaddagData = new Uint32Array(
   buf.byteOffset,
   buf.length / Uint32Array.BYTES_PER_ELEMENT
 );
-const localeData = new LocaleData('fr', gaddagData);
+const localeData = new LocaleData(LOCALE, gaddagData);
 
-const ALPHABET_CODE_TO_CHAR_ID = new Array(65536);
-localeData.alphabet.forEach((c, index) => {
-  ALPHABET_CODE_TO_CHAR_ID[c.charCodeAt(0)] = index;
-});
-
-const toCharId = (c: string) =>
-  c === '?' ? BLANK_ID : (ALPHABET_CODE_TO_CHAR_ID[c.charCodeAt(0)] ?? EMPTY_ID);
+const toCharId = (c: string): number => {
+  if (c === TILE_BLANK) return BLANK_ID;
+  if (c === '.' || c === ' ') return EMPTY_ID; // grid placeholders
+  return localeData.charToId(c); // throws on unknown — catches typos in the grid
+};
 
 // Exact grid from scripts/test-solver.ts:24-41
 const grid = [

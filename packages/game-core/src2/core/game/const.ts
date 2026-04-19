@@ -6,6 +6,14 @@ export const BLANK_ID = -2; // ID for blank tiles (jokers) in the rack
 
 export const TILE_RACK_SIZE = 7;
 
+// Maximum supported alphabet size (letters + separator). Sizes the static
+// lookup tables in `wasm/gaddag_converter.c` (node_templates, separator_nodes,
+// last_split_* caches). Currently 43 = Slovak (42 letters) + separator.
+// MUST stay in sync with the `#define MAX_ALPHABET` at the top of that file —
+// bumping only one side creates a silent mismatch: the TS wrapper would accept
+// an input the C rejects (or vice-versa) with no clear error.
+export const MAX_ALPHABET = 43;
+
 export const BOARD_EMPTY_SQUARE = '.'; // one char only
 export const TILE_BLANK = '?'
 
@@ -40,5 +48,8 @@ export const BONUS_GRID = (function ({ __, W3, W2, L3, L2 }: Bonuses) {
   ];
 })(BOARD_SQUARE_BONUSES);
 
-// If one day the bonus grid is not symetrical, we can just redefine it properly
+// The standard bonus grid is symmetric, so the transpose aliases the original.
+// If a future variant introduces an asymmetric layout, redefine this as the real
+// transpose: the solver already branches on it at `isVertical ? INVERTED_BONUS_GRID
+// : BONUS_GRID`, so an updated constant is picked up for free.
 export const INVERTED_BONUS_GRID = BONUS_GRID;

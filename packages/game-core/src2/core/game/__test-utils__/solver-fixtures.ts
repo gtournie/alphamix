@@ -11,7 +11,14 @@ const TEST_DICT_PATH = path.resolve(__dirname, 'test-dict/gaddag.bin');
 // Register the test locale `zxx` (BCP 47 "no linguistic content") as an alias of
 // French scores/distributions — the test mini-dict uses the same latin alphabet.
 // This lives in test utils so production `tile-configs.ts` stays test-free.
-TILE_INFO_BY_LOCALES.zxx = TILE_INFO_BY_LOCALES.fr;
+// Shallow clone: sharing the reference would let a future mutation on zxx
+// cross-contaminate the real `fr` entry (and vice-versa).
+// Idempotent: `test-dict/build.ts` registers the same alias. Re-running the
+// assignment would replace the entry with a fresh clone (no harm today, but a
+// future pre-registration elsewhere would be silently overwritten).
+if (!TILE_INFO_BY_LOCALES.zxx) {
+  TILE_INFO_BY_LOCALES.zxx = { ...TILE_INFO_BY_LOCALES.fr };
+}
 
 /**
  * `zxx` = BCP 47 "no linguistic content" → the synthetic test mini-dict under
@@ -34,8 +41,10 @@ export function emptyGrid(): number[][] {
 
 function charToCharId(locale: LocaleData): (c: string) => number {
   const map = new Array<number>(128).fill(EMPTY_ID);
-  for (let i = 0; i < locale.alphabet.length; i++) {
-    const upper = locale.alphabet[i];
+  // Skip index 0: it's the separator slot ('+'), not a real letter. Mapping '+' to
+  // char_id 0 would let a stray '+' in test input silently pass as a separator.
+  for (let i = 1, len = locale.upperAlphabet.length; i < len; i++) {
+    const upper = locale.upperAlphabet[i];
     const lower = locale.lowerAlphabet[i];
     map[upper.charCodeAt(0)] = i;
     map[lower.charCodeAt(0)] = i;

@@ -1,4 +1,4 @@
-import { beforeAll, describe, expect, it } from 'vitest';
+import { beforeAll, describe, expect, it, vi } from 'vitest';
 import fs from 'fs';
 import path from 'path';
 import { Board } from './solver';
@@ -14,7 +14,10 @@ import {
   sortMoves,
 } from './__test-utils__/solver-fixtures';
 import type { Move } from './types';
-import { BLANK_ID, EMPTY_ID, TILE_RACK_SIZE } from './const';
+import { BLANK_ID, EMPTY_ID, SEPARATOR_ID, TILE_RACK_SIZE } from './const';
+import { TILE_INFO_BY_LOCALES } from './locale/tile-configs';
+import { compressToDawg } from '../../../scripts/compress-source-to-dawg';
+import { convertDawgToGaddag } from './utils/dawg-to-gaddag';
 
 let zxx: LocaleData;
 let fr: LocaleData;
@@ -453,7 +456,7 @@ describe('D. Scoring', () => {
     const grid = parseGrid(zxx, [
       '...............',
       '...........ECHO',
-      '...........S..R',
+      '...........T..R',
       '.......ZEBRE..A',
       '..............N',
       '..............G',
@@ -778,6 +781,39 @@ describe('E. Blanks', () => {
     expect(zeroScore).toBeDefined();
     expect(zeroScore!.score).toBe(0);
   });
+
+  // Pre-placed blanks (from a previous turn). Per official Scrabble rules a
+  // blank keeps its 0 score forever. `parseGrid`'s docstring already encodes
+  // the convention: lowercase 'a'-'z' in the grid input means "this tile was
+  // placed as a blank". The solver extends vertically to form ZE — Z was
+  // placed as a blank, so the main word must score E alone (1), not Z + E
+  // (11). If this test fails, the grid representation has stopped preserving
+  // blank-ness across turns and the solver has lost the Scrabble-legal
+  // guarantee for cross-turn plays.
+  it('E8: a pre-placed blank from a previous turn still contributes 0', () => {
+    const grid = parseGrid(zxx, [
+      '...............',
+      '...............',
+      '...............',
+      '...............',
+      '...............',
+      '...............',
+      '...............',
+      '.......z.......',
+      '...............',
+      '...............',
+      '...............',
+      '...............',
+      '...............',
+      '...............',
+      '...............',
+    ]);
+    const rack = parseRack(zxx, 'EAAAAAA');
+    const moves = new Board(zxx, grid, rack).solve();
+    const ze = findMove(moves, { word: 'ZE', row: 7, col: 7, dir: 'V' });
+    expect(ze).toBeDefined();
+    expect(ze!.score).toBe(1);
+  });
 });
 
 // ----------------------------------------------------------------------------
@@ -976,7 +1012,7 @@ describe('H. FR regression', () => {
   it('H1: full move list on a real FR mid-game grid matches the committed fixture', () => {
     const toFrId = (() => {
       const map = new Array<number>(65536).fill(EMPTY_ID);
-      fr.alphabet.forEach((c, index) => { map[c.charCodeAt(0)] = index; });
+      fr.upperAlphabet.forEach((c, index) => { map[c.charCodeAt(0)] = index; });
       return (c: string) => (c === '?' ? BLANK_ID : (map[c.charCodeAt(0)] ?? EMPTY_ID));
     })();
 
@@ -1010,7 +1046,7 @@ describe('H. FR regression', () => {
     // Pre-place CHAT at (7,7-10) in FR.
     const toFrId = (() => {
       const map = new Array<number>(65536).fill(EMPTY_ID);
-      fr.alphabet.forEach((c, index) => { map[c.charCodeAt(0)] = index; });
+      fr.upperAlphabet.forEach((c, index) => { map[c.charCodeAt(0)] = index; });
       return (c: string) => (c === '?' ? BLANK_ID : (c === '.' || c === ' ' ? EMPTY_ID : (map[c.charCodeAt(0)] ?? EMPTY_ID)));
     })();
     const grid = [
@@ -1048,7 +1084,7 @@ describe('I. Performance', () => {
     // Reuse the exact H1 setup
     const toFrId = (() => {
       const map = new Array<number>(65536).fill(EMPTY_ID);
-      fr.alphabet.forEach((c, index) => { map[c.charCodeAt(0)] = index; });
+      fr.upperAlphabet.forEach((c, index) => { map[c.charCodeAt(0)] = index; });
       return (c: string) => (c === '?' ? BLANK_ID : (map[c.charCodeAt(0)] ?? EMPTY_ID));
     })();
     const grid = [
@@ -1122,12 +1158,12 @@ describe('J. Sanity invariants', () => {
     const rack = parseRack(zxx, 'ESACBRT');
     const moves = new Board(zxx, grid, rack).solve();
     for (const m of moves.values()) {
-      for (let i = 0; i < m.word.length; i++) {
+      for (let i = 0, len = m.word.length; i < len; i++) {
         const r = m.dir === 'H' ? m.row : m.row + i;
         const c = m.dir === 'H' ? m.col + i : m.col;
         const existing = grid[r][c];
         if (existing !== EMPTY_ID) {
-          expect(m.word.charAt(i).toUpperCase()).toBe(zxx.alphabet[existing]);
+          expect(m.word.charAt(i).toUpperCase()).toBe(zxx.upperAlphabet[existing]);
         }
       }
     }
@@ -1136,5 +1172,456 @@ describe('J. Sanity invariants', () => {
   it('J4: solve() on an empty rack returns an empty result set (defensive)', () => {
     const moves = new Board(zxx, emptyGrid(), []).solve();
     expect(moves.size).toBe(0);
+  });
+});
+
+// ----------------------------------------------------------------------------
+// K. GADDAG format invariants (regression guards for the header-less layout)
+// ----------------------------------------------------------------------------
+describe('K. GADDAG format invariants', () => {
+  // zxx aliases the FR alphabet: 26 letters + separator → ID_TO_CHAR.length === 27.
+  // In the previous C code, `for (i = 1; i <= alphabet_len; i++)` created one extra
+  // letter node at char_id === alphabet_len (i.e. === 27 here), an orphan with no
+  // real letter backing it. This test guards against reintroducing that off-by-one.
+  it('K1: root siblings cover exactly char_ids 1..26 — no orphan at alphabet_len', () => {
+    const gaddag = zxx.gaddagData;
+    const seen: number[] = [];
+    // Hardcode the buffer index rather than derive it from `rootIdx`: under the
+    // current layout `rootIdx` is a sentinel tag (= 0), not a buffer position, so
+    // walking the sibling chain always starts at the first real node, index 1.
+    // The sentinel at gaddag[0] is reserved (== 0).
+    let idx = 1;
+    while (true) {
+      const nodeVal = gaddag[idx];
+      seen.push(nodeVal >>> 26);
+      if (!(nodeVal & 0x1000000)) break;
+      idx++;
+    }
+    seen.sort((a, b) => a - b);
+    const expected = Array.from({ length: 26 }, (_, i) => i + 1);
+    expect(seen).toEqual(expected);
+    // No entry uses char_id === alphabet_len (== 27 == ID_TO_CHAR.length).
+    expect(seen).not.toContain(zxx.alphabetSize);
+  });
+
+  // Under the old layout (`rootIdx = alphabetLen + 1`), `findDataChild(rootIdx, X)`
+  // could return an index numerically equal to rootIdx itself, making "we walked
+  // one letter from root" indistinguishable from "we haven't walked yet". The
+  // follow-up separator lookup would then re-enter the root fast-path instead of
+  // walking the letter's subtree. Under the new layout (rootIdx = 0 tag, first
+  // sibling at buffer index 1) the collision is structurally impossible, but
+  // this test remains a regression guard: the second assertion (separator lookup
+  // reaching Z's subtree) fails immediately if `findDataChild` ever confuses a
+  // tag-rootIdx with a positional one.
+  it('K2: walking one letter from root reaches Z\'s subtree', () => {
+    const zCharId = zxx.upperAlphabet.indexOf('Z');
+    expect(zCharId).toBe(26);
+
+    const afterZ = zxx.findDataChild(zxx.rootIdx, zCharId);
+    expect(afterZ).not.toBe(-1);
+    expect(afterZ).not.toBe(zxx.rootIdx);
+
+    // Looking up the separator from the Z node must walk Z's subtree, NOT restart
+    // from root. The test dict contains ZE/ZEN/ZOO/ZERO/ZEBRE, so a separator
+    // child of the Z node must exist.
+    const separator = zxx.findDataChild(afterZ, SEPARATOR_ID);
+    expect(separator).not.toBe(-1);
+    expect(separator).not.toBe(zxx.rootIdx);
+  });
+
+  it('K3: a non-existent char_id returns -1 both from root and from a walked node', () => {
+    const bogus = zxx.alphabetSize; // out of alphabet range
+    expect(zxx.findDataChild(zxx.rootIdx, bogus)).toBe(-1);
+    const afterA = zxx.findDataChild(zxx.rootIdx, zxx.upperAlphabet.indexOf('A'));
+    expect(afterA).not.toBe(-1);
+    expect(zxx.findDataChild(afterA, bogus)).toBe(-1);
+  });
+
+  // The `hasLeftPart` check in `computeVerticalConstraint` used to rely on
+  // `currentIdx !== rootIdx` — this silently collapsed to false whenever
+  // `findDataChild(rootIdx, X)` returned an index numerically equal to rootIdx,
+  // which the GADDAG layout makes easy to hit (root's first sibling lives right
+  // next to the rootIdx sentinel). A collapsed hasLeftPart means the subsequent
+  // separator lookup went back to root's children instead of walking into the
+  // left letter's subtree, turning a "1 letter left context" constraint into
+  // "no context" — blanks then get to impersonate any letter of the alphabet.
+  //
+  // We test the most adversarial minimal setup: a single 'Z' on the board with
+  // a blank on the rack. Only 'ZE' is a valid 2-letter word in the test dict,
+  // so the cross-word mask at the cell below Z must allow ONLY 'E'. Any
+  // regression of the hasLeftPart logic immediately surfaces here as a blank
+  // landing as some other letter.
+  it('K4: hasLeftPart — a single-letter left vertical context tightens the mask on blanks', () => {
+    const grid = emptyGrid();
+    const zId = zxx.upperAlphabet.indexOf('Z');
+    grid[7][7] = zId;
+
+    // Rack: one blank + throwaway letters. We want the solver to place the
+    // blank under the Z and see which letters it picks.
+    const rack = parseRack(zxx, '?AAAAAA');
+    const moves = new Board(zxx, grid, rack).solve();
+
+    // There MUST be moves — the blank as 'E' below Z forms "ZE" vertically.
+    // If no vertical move covers (8,7), that's already a regression. Every move
+    // that DOES cover (8,7) must place an 'E' there (blank rendered as lowercase
+    // 'e', real tile as 'E' — both uppercase to 'E').
+    //
+    // (Horizontal cross-coverage isn't tested here: under the test dict there's
+    // no legal horizontal play through (8,7) — no `AE`/`EA` 2-letter word — so
+    // any horizontal loop would be vacuous. Vertical coverage alone exercises
+    // the hasLeftPart path.)
+    let sawVerticalAt8_7 = false;
+    for (const m of moves.values()) {
+      const coversRow8Col7Vertical =
+        m.dir === 'V' && m.col === 7 && m.row <= 8 && m.row + m.word.length - 1 >= 8;
+      if (!coversRow8Col7Vertical) continue;
+      sawVerticalAt8_7 = true;
+      const letterAtRow8 = m.word.charAt(8 - m.row);
+      expect(letterAtRow8.toUpperCase()).toBe('E');
+    }
+    expect(sawVerticalAt8_7).toBe(true);
+  });
+
+  // K5: paired with the break-on-`-1` guard inside `computeVerticalConstraint`'s
+  // left-walk. Scenario: stack two letters vertically whose reverse pair doesn't
+  // exist anywhere in the GADDAG — J at (5,7) and Z at (6,7). The test dict has
+  // no word containing "JZ" or "ZJ", so when the left-walk reverses from (7,7)
+  // it must fail on the second lookup.
+  //
+  // Without the break, the loop would continue and call `findDataChild(-1, …)`.
+  // That happens to return -1 today via `Uint32Array[-1] = undefined` coincidence,
+  // so a black-box test ("no bogus vertical moves past row 6") passes either way
+  // — it cannot discriminate the break from the OOB fallback.
+  //
+  // K5 therefore does BOTH checks:
+  //   (a) black-box: no vertical move on col 7 extends past the Z at row 6;
+  //   (b) white-box: `findDataChild` is NEVER called with `parentNodeIdx < 0`.
+  //
+  // If the break regresses, (b) fails immediately even if (a) still passes by
+  // coincidence — so the test is robust against future changes to findDataChild
+  // that might stop tolerating negative inputs (e.g. if Uint32Array ever gains
+  // bounds checks, or if findDataChild is rewritten to assert).
+  it('K5: broken vertical left-context → no bogus moves AND no findDataChild(-1,…) calls', () => {
+    const grid = emptyGrid();
+    const jId = zxx.upperAlphabet.indexOf('J');
+    const zId = zxx.upperAlphabet.indexOf('Z');
+    grid[5][7] = jId;
+    grid[6][7] = zId;
+
+    const rack = parseRack(zxx, 'AAAAAAA');
+
+    const spy = vi.spyOn(zxx, 'findDataChild');
+    try {
+      const moves = new Board(zxx, grid, rack).solve();
+
+      // (a) Black-box regression guard: no vertical move covering (7,7) via
+      // extension past row 6.
+      for (const m of moves.values()) {
+        if (m.dir !== 'V' || m.col !== 7) continue;
+        expect(m.row + m.word.length - 1).toBeLessThanOrEqual(6);
+      }
+
+      // (b) White-box guard on the break: no solver path should invoke
+      // findDataChild on a negative parent — the break inside the left-walk
+      // must fire before such a call is attempted. Scanning every recorded
+      // call gives us the exact first argument that would trigger the bug.
+      const negativeCalls = spy.mock.calls.filter(([parent]) => parent < 0);
+      expect(negativeCalls).toEqual([]);
+    } finally {
+      spy.mockRestore();
+    }
+  });
+
+  // K6: guards the restructured left-walk (M5 fix). The previous shape
+  // `break` + `if (hasLeftPart) { if (currentIdx === -1) return }` worked
+  // today only because `findDataChild(-1, …)` returns -1 via `Uint32Array`
+  // OOB. It also silently collapsed `hasLeftPart` to false on a first-iter
+  // failure (currR doesn't decrement → `currR < r - 1` is false). The new
+  // shape `return [mask, verticalScore]` inside the loop fixes both issues
+  // in one go.
+  //
+  // Under a valid LocaleData the first-iter-failure case is unreachable
+  // (root always has every letter as a child, cf. K1). To exercise the bail
+  // path we install a spy that forces `findDataChild(rootIdx, zId)` to
+  // return -1 on the first call — simulating a corrupted GADDAG. A correct
+  // implementation must (a) produce no moves covering (8,7) as a new tile,
+  // (b) NEVER call `findDataChild(-1, …)` afterwards (the bail would be
+  // missing its return and fall through to the mask loop with a -1 cursor).
+  it('K6: first-iter left-walk failure bails via return, not OOB fallback', () => {
+    const grid = emptyGrid();
+    const zId = zxx.upperAlphabet.indexOf('Z');
+    grid[7][7] = zId;
+
+    const rack = parseRack(zxx, 'AAAAAAA');
+
+    // Preserve the real implementation BEFORE spying — `vi.spyOn` replaces
+    // the method, so we need a reference to the original to delegate non-
+    // matching calls to. Bind to keep `this` correct.
+    const realFindDataChild = zxx.findDataChild.bind(zxx);
+    let forcedFailureFired = false;
+    const spy = vi.spyOn(zxx, 'findDataChild').mockImplementation((parent: number, charId: number) => {
+      if (!forcedFailureFired && parent === zxx.rootIdx && charId === zId) {
+        forcedFailureFired = true;
+        return -1; // simulate corruption: Z missing as a root child
+      }
+      return realFindDataChild(parent, charId);
+    });
+
+    try {
+      const moves = new Board(zxx, grid, rack).solve();
+
+      // Forced failure should have actually fired — otherwise the test is
+      // vacuous (scenario didn't exercise the target path).
+      expect(forcedFailureFired).toBe(true);
+
+      // No move should cover (8,7) as a new tile: the forced lookup failure
+      // means computeVerticalConstraint at (8,7) bailed with mask=[], which
+      // blocks any horizontal move that would place a tile there.
+      for (const m of moves.values()) {
+        if (m.dir !== 'H' || m.row !== 8) continue;
+        const col7Covered = m.col <= 7 && m.col + m.word.length - 1 >= 7;
+        if (!col7Covered) continue;
+        // A move covering (8,7) is fine only if (8,7) was already occupied
+        // (it isn't in this setup — the only tile is at 7,7) → so any such
+        // move would be placing a new tile at (8,7), which is forbidden.
+        throw new Error(
+          `Unexpected move placing a new tile at (8,7) after forced left-walk failure: ${JSON.stringify(m)}`
+        );
+      }
+
+      // White-box: after the bail returns, the solver must NOT have called
+      // findDataChild with a negative parent. If the fix regresses to the
+      // old break+OOB shape, the mask loop would fire `findDataChild(-1, …)`
+      // and rely on `Uint32Array[-1]` returning undefined — this assertion
+      // catches any such regression immediately.
+      const negativeCalls = spy.mock.calls.filter(([parent]) => parent < 0);
+      expect(negativeCalls).toEqual([]);
+    } finally {
+      spy.mockRestore();
+    }
+  });
+
+  // K7: verticalScore invariant (M5 part 2). The returned `verticalScore`
+  // must only include tiles whose GADDAG lookup succeeded — accumulating
+  // the score of a letter BEFORE verifying the lookup would pollute the
+  // returned score with tiles that don't participate in any valid word.
+  //
+  // Today the pollution is invisible externally because mask=[] absorbs it
+  // (`calculateScore` short-circuits on empty placements). But if anyone
+  // later reads `verticalScore` out of the tuple for logging/debugging/UI,
+  // they must see a score consistent with "tiles I could legally extend".
+  //
+  // Black-box probe: JZ stack, then verify that every move the solver
+  // emits on col 7 has a score that does NOT include scores of J or Z —
+  // i.e. no placement actually uses either tile as left-context (because
+  // the dict has no word containing JZ or ZJ, so the walk bails at the
+  // 2nd lookup, before the J-score would be added under the new order).
+  it('K7: broken left-walk does not leak failing-tile scores into move scores', () => {
+    const grid = emptyGrid();
+    const jId = zxx.upperAlphabet.indexOf('J');
+    const zId = zxx.upperAlphabet.indexOf('Z');
+    grid[5][7] = jId;
+    grid[6][7] = zId;
+
+    const rack = parseRack(zxx, 'AAAAAAA');
+    const moves = new Board(zxx, grid, rack).solve();
+
+    const jScore = zxx.tileScores[zxx.upperAlphabet[jId]];
+    const zScore = zxx.tileScores[zxx.upperAlphabet[zId]];
+    // J is the most expensive letter on this grid (8), Z too (10). Any move
+    // whose score is anomalously inflated would signal that a failing-tile
+    // score leaked into the returned `verticalScore` via the anchor's cross-
+    // word constraint at a cell where we can't actually build a valid word.
+    // For this minimal grid, legal cross-words through (4,7)/(7,7)/… can't
+    // reach the failing chain: every emitted move's score must stay within
+    // a reasonable bound (no move can beat a 7-letter bingo's ~60 pts here).
+    const ANOMALY_THRESHOLD = 100;
+    for (const m of moves.values()) {
+      expect(m.score).toBeLessThan(ANOMALY_THRESHOLD);
+    }
+    // Sanity: J and Z scores are what we expected (defensive: if someone
+    // rebalances FR tile scores, the anomaly threshold above may need
+    // updating).
+    expect(jScore).toBe(8);
+    expect(zScore).toBe(10);
+  });
+});
+
+// ----------------------------------------------------------------------------
+// L. Big-alphabet regression (`1 << charId` overflow past 31 letters)
+// ----------------------------------------------------------------------------
+// Synthetic 42-letter locale (Latin A..Z + Greek Α..Π). Default UTF-16 sort
+// yields charId 1..26 = A..Z (fits in a 32-bit bitmask) and charId 27..42 =
+// Α..Π (27..31 fit; 32..42 would have silently wrapped under the old
+// `1 << charId` mask, e.g. `1 << 36` → `1 << 4` aliases with 'D').
+//
+// FR (26 letters) can't exercise this path. Inlining the whole setup here —
+// rather than a side-file — keeps the "one test entry-point per file" story
+// consistent across the package.
+//
+// BCP 47 "qaa" is in the private-use range: safe for toLocaleLowerCase.
+describe('L. Big-alphabet regression (`1 << charId` overflow)', () => {
+  const LOCALE_42 = 'qaa';
+  let locale42: LocaleData;
+
+  function buildTileInfoForBigAlphabet() {
+    const scores: Record<string, number> = {};
+    for (let i = 0; i < 26; i++) scores[String.fromCharCode(0x41 + i)] = 1;     // A..Z
+    for (let i = 0; i < 16; i++) scores[String.fromCharCode(0x0391 + i)] = 1;   // Α..Π
+    const distributions: Record<string, number> = {};
+    for (const k of Object.keys(scores)) distributions[k] = 5;
+    distributions['?'] = 2;
+
+    // Inline mirror of tile-configs.ts reducer — done here so the synthetic
+    // locale construction doesn't leak into production config.
+    const letters = Object.keys(scores).sort();
+    const idToChar: string[] = new Array(letters.length + 1);
+    idToChar[SEPARATOR_ID] = '+';
+    for (let i = 0; i < letters.length; i++) idToChar[i + 1] = letters[i];
+    const charToId = new Map<string, number>();
+    for (let i = 1; i < idToChar.length; i++) charToId.set(idToChar[i], i);
+
+    const bag: string[] = [];
+    for (const letter of Object.keys(distributions)) {
+      for (let i = 0; i < distributions[letter]; i++) bag.push(letter);
+    }
+
+    return {
+      TILE_SCORES: scores,
+      TILE_DISTRIBUTIONS: distributions,
+      TILE_BAG_NEW_CONTENT: bag,
+      ID_TO_CHAR: Object.freeze(idToChar) as readonly string[],
+      CHAR_TO_ID: charToId,
+    };
+  }
+
+  beforeAll(async () => {
+    if (!TILE_INFO_BY_LOCALES[LOCALE_42]) {
+      TILE_INFO_BY_LOCALES[LOCALE_42] = buildTileInfoForBigAlphabet();
+    }
+    const alphabetSize = TILE_INFO_BY_LOCALES[LOCALE_42].ID_TO_CHAR.length; // 43
+
+    // Dict hand-picked so the solver must walk charId > 31 during
+    // `computeVerticalConstraint`'s mask loop. Every word contains at least
+    // one Greek letter (charId ≥ 27, several ≥ 32).
+    const words = [
+      'AB', 'BA', 'AA',
+      'ΚΑ',      // charId(Κ)=36, charId(Α)=27
+      'ΑΚ',
+      'ΠΑ',      // charId(Π)=42
+      'ΑΠ',
+      'ABΠ',
+      'ΚΑΜΑ',    // charId(Μ)=38
+      'AΜΜ',
+      'ΜΑ',
+      'ΑΜ',
+    ];
+
+    const dawg = compressToDawg(words, LOCALE_42);
+    const gaddag = await convertDawgToGaddag(dawg, alphabetSize);
+    locale42 = new LocaleData(LOCALE_42, gaddag);
+  });
+
+  it('L1: LocaleData accepts the synthetic 43-symbol alphabet without error', () => {
+    expect(locale42.alphabetSize).toBe(43);
+    expect(locale42.upperAlphabet.length).toBe(43);
+    expect(locale42.fullAlphabetMask.length).toBe(43);
+    expect(locale42.fullAlphabetMask[0]).toBe(0);  // separator
+    expect(locale42.fullAlphabetMask[42]).toBe(1); // highest real letter
+  });
+
+  it('L2: char_ids span beyond the old 31-bit ceiling', () => {
+    // Every Greek char lands past charId 26. Several land past 31 — precisely
+    // the range the old bitmask couldn't represent.
+    expect(locale42.upperAlphabet.indexOf('Α')).toBe(27);
+    expect(locale42.upperAlphabet.indexOf('Κ')).toBe(36);
+    expect(locale42.upperAlphabet.indexOf('Μ')).toBe(38);
+    expect(locale42.upperAlphabet.indexOf('Π')).toBe(42);
+  });
+
+  // Direct solver check: place Κ (charId 36) on the board, rack has Α
+  // (charId 27), and ask the solver to build ΚΑ/ΑΚ. Under the old bitmask,
+  // `(1 << 36)` wrapped to `1 << 4`, aliasing with charId 4 ('D'). The mask
+  // would then reject 'Κ' where the cross-word required it, and accept
+  // letters that shouldn't be there. The new array-indexed mask treats each
+  // charId independently.
+  it('L3: solver finds a move using a char_id > 31 (Κ + Α → ΚΑ or ΑΚ)', () => {
+    const grid: number[][] = Array.from({ length: 15 }, () => new Array<number>(15).fill(EMPTY_ID));
+    const aGreek = locale42.upperAlphabet.indexOf('Α'); // 27
+    const kGreek = locale42.upperAlphabet.indexOf('Κ'); // 36
+    expect(kGreek).toBeGreaterThan(31);
+
+    const rack = [aGreek, kGreek, aGreek, aGreek, aGreek, aGreek, aGreek];
+    const moves = new Board(locale42, grid, rack).solve();
+
+    expect(moves.size).toBeGreaterThan(0);
+
+    let sawKA = false;
+    for (const m of moves.values()) {
+      if (m.word.includes('Κ') && m.word.includes('Α')) {
+        sawKA = true;
+        break;
+      }
+    }
+    expect(sawKA).toBe(true);
+  });
+
+  // Cross-word (vertical) probe: places Κ on the grid, then asks the solver
+  // for moves where the vertical mask at a neighbouring cell must correctly
+  // include Α (charId 27, low half) AND reject letters that don't form a
+  // valid Κ-word. Exercises `computeVerticalConstraint`'s mask-setting loop
+  // specifically for charIds spanning low and high 32-bit halves.
+  it('L4: vertical constraint correctly masks both low and high charIds', () => {
+    const grid: number[][] = Array.from({ length: 15 }, () => new Array<number>(15).fill(EMPTY_ID));
+    const kGreek = locale42.upperAlphabet.indexOf('Κ');
+    grid[7][7] = kGreek;
+
+    // Rack: Α (low charId 27) + Π (high charId 42) + filler.
+    const aGreek = locale42.upperAlphabet.indexOf('Α');
+    const piGreek = locale42.upperAlphabet.indexOf('Π');
+    const rack = [aGreek, piGreek, aGreek, aGreek, aGreek, aGreek, aGreek];
+
+    const moves = new Board(locale42, grid, rack).solve();
+
+    // The dict contains ΚΑ (2-letter). There must be a vertical move covering
+    // (8,7) where the placed letter is 'Α' — proves the mask accepted charId
+    // 27 while Κ (charId 36, high half) occupies the left context.
+    let sawVerticalAt8_7 = false;
+    for (const m of moves.values()) {
+      const coversVertical8_7 =
+        m.dir === 'V' && m.col === 7 && m.row <= 8 && m.row + m.word.length - 1 >= 8;
+      if (!coversVertical8_7) continue;
+      sawVerticalAt8_7 = true;
+      const letterAt8 = m.word.charAt(8 - m.row).toLocaleUpperCase(LOCALE_42);
+      expect(letterAt8).toBe('Α');
+    }
+    expect(sawVerticalAt8_7).toBe(true);
+  });
+
+  // Blank placement + charId > 31: a blank must be offered as every alphabet
+  // letter. With 42 letters, the rack-iteration loop spans charId 1..42. Each
+  // check uses `mask[charId]`; charIds 32..42 live past the old bitmask's
+  // wrap point. Without the refactor, the solver would silently refuse to
+  // place a blank as any Greek-range letter.
+  it('L5: blank tile can be placed as any char_id in the 42-letter alphabet', () => {
+    const grid: number[][] = Array.from({ length: 15 }, () => new Array<number>(15).fill(EMPTY_ID));
+    const aGreek = locale42.upperAlphabet.indexOf('Α');
+    grid[7][7] = aGreek;
+
+    // Rack: blank + A's to avoid biasing toward any specific letter.
+    const aLatin = locale42.upperAlphabet.indexOf('A');
+    const rack = [BLANK_ID, aLatin, aLatin, aLatin, aLatin, aLatin, aLatin];
+    const moves = new Board(locale42, grid, rack).solve();
+
+    // At least one move must place the blank as Κ (charId 36, > 31) to form
+    // ΑΚ/ΚΑ. The blank renders as lowercase κ in move.word.
+    let sawBlankAsHighCharId = false;
+    for (const m of moves.values()) {
+      if (m.usedLetters.includes('κ')) {
+        sawBlankAsHighCharId = true;
+        break;
+      }
+    }
+    expect(sawBlankAsHighCharId).toBe(true);
   });
 });

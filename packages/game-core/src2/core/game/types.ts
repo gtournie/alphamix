@@ -1,7 +1,11 @@
 
 export interface CellConstraint {
   isAnchor: boolean;
-  mask: number; // Bitmask where bit 0 is 'A', bit 1 is 'B', etc.
+  // Dense 0/1 array indexed by charId. `mask[charId]` truthy ⇒ letter is allowed
+  // at this cell. Simpler and not-measurably-slower than a bitmask once the
+  // alphabet exceeds 31 letters (where `1 << charId` silently wraps in JS).
+  // Length = alphabetSize; index 0 (separator) is always 0.
+  mask: number[];
   verticalScore: number; // Score of the vertical word already present (without bonuses)
 }
 
@@ -18,6 +22,12 @@ export type TileInfo = {
   TILE_SCORES: LetterScore;
   TILE_DISTRIBUTIONS: Record<string, number>;
   TILE_BAG_NEW_CONTENT: string[];
+  // `readonly` is load-bearing: `LocaleData.upperAlphabet` aliases this array by
+  // reference (no defensive copy). A mutation would corrupt every `LocaleData`
+  // instance that binds to the same locale, silently desyncing char_ids from the
+  // GADDAG binary.
+  ID_TO_CHAR: readonly string[];
+  CHAR_TO_ID: ReadonlyMap<string, number>;
 };
 
 export interface LetterScore {

@@ -1,5 +1,7 @@
-import { TILE_BLANK } from "../const";
+import { SEPARATOR_ID, TILE_BLANK } from "../const";
 import type { LetterScore, TileInfo } from "../types";
+
+const SEPARATOR = '+';
 
 const tileInfoByLocales: Record<string, { TILE_SCORES: LetterScore; TILE_DISTRIBUTIONS: Record<string, number> }> = {
   fr: {
@@ -16,12 +18,38 @@ const tileInfoByLocales: Record<string, { TILE_SCORES: LetterScore; TILE_DISTRIB
 };
 
 export const TILE_INFO_BY_LOCALES: Record<string, TileInfo> = Object.entries(tileInfoByLocales).reduce((acc, [locale, info]) => {
+  // Default lexicographic sort compares by UTF-16 code unit and is spec-defined to be
+  // deterministic across every ES runtime (V8, JSC, SpiderMonkey, Bun). Safe under
+  // digraph tiles (ES "CH"/"LL", NL "IJ") since whole-string comparison yields
+  // C < CH < D, I < IJ < J, etc. Do NOT use localeCompare: its output depends on the
+  // host ICU version, which would desync char_ids between compression time and runtime.
+  const letters = Object.keys(info.TILE_SCORES).sort();
+
+  const idToCharMutable: string[] = new Array(letters.length + 1);
+  idToCharMutable[SEPARATOR_ID] = SEPARATOR;
+  for (let i = 0, len = letters.length; i < len; i++) idToCharMutable[i + 1] = letters[i];
+  // Freeze so the `readonly string[]` type reflects a real runtime guarantee.
+  // `LocaleData.upperAlphabet` aliases this array by reference — a hypothetical
+  // `(upperAlphabet as string[])[0] = 'X'` would corrupt every future LocaleData
+  // instance for the same locale. Freezing turns that silent corruption into a
+  // TypeError (ESM modules run in strict mode).
+  const ID_TO_CHAR: readonly string[] = Object.freeze(idToCharMutable);
+
+  // CHAR_TO_ID exposes REAL letters only (no separator). The separator has its own
+  // constant SEPARATOR_ID and should never be looked up by character — any code that
+  // gets '+' via `CHAR_TO_ID.get('+')` is almost certainly a bug, and the undefined
+  // return surfaces it instead of silently producing char_id 0.
+  const CHAR_TO_ID = new Map<string, number>();
+  for (let i = 1, len = ID_TO_CHAR.length; i < len; i++) CHAR_TO_ID.set(ID_TO_CHAR[i], i);
+
   acc[locale] = {
     ...info,
     TILE_BAG_NEW_CONTENT: Object.keys(info.TILE_DISTRIBUTIONS).reduce((acc: string[], letter) => {
       for (let i = 0, len = info.TILE_DISTRIBUTIONS[letter]; i < len; ++i) acc.push(letter);
       return acc;
-    }, [])
+    }, []),
+    ID_TO_CHAR,
+    CHAR_TO_ID
   };
   return acc;
 }, {} as Record<string, TileInfo>);

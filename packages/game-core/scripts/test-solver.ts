@@ -1,25 +1,29 @@
+// Manual smoke test — not part of the shipped game nor of any automated suite.
+// Use this to eyeball the solver on a specific grid/rack. Code quality is
+// deliberately relaxed here: private-field access, loose typing, throwaway
+// helpers are all fair game. Don't import from this file.
 import fs from 'fs';
 import path from 'path';
 import { Board } from '../src2/core/game/solver.js';
 import LocaleData from '../src2/core/game/locale/locale-data.js';
+import { BLANK_ID, EMPTY_ID, TILE_BLANK } from '../src2/core/game/const';
 
-const data = fs.readFileSync(path.resolve(import.meta.dir, '../dictionaries/gaddag/fr.bin'));
+const LOCALE = 'fr';
+
+const data = fs.readFileSync(path.resolve(import.meta.dir, `../dictionaries/gaddag/${LOCALE}.bin`));
 const gaddagData = new Uint32Array(
   data.buffer,
   data.byteOffset,
   data.length / Uint32Array.BYTES_PER_ELEMENT
 );
 
-const alphabetLen = gaddagData[0];
-const ALPHABET = new Array(alphabetLen);
-for (let i = 0; i < alphabetLen; i++) {
-  ALPHABET[i] = String.fromCharCode(gaddagData[i + 1]);
-}
+const localeData = new LocaleData(LOCALE, gaddagData);
 
-const ALPHABET_CODE_TO_CHAR_ID = new Array(65536);
-ALPHABET.forEach((c, index) => { ALPHABET_CODE_TO_CHAR_ID[c.charCodeAt(0)] = index; });
-
-const toCharId = (c: string) => c === '?' ? -2 : ALPHABET_CODE_TO_CHAR_ID[c.charCodeAt(0)] ?? -1;
+const toCharId = (c: string): number => {
+  if (c === TILE_BLANK) return BLANK_ID;
+  if (c === '.' || c === ' ') return EMPTY_ID; // grid placeholders
+  return localeData.charToId(c); // throws on unknown — catches typos in the grid
+};
 
 const grid = [
   // 123456789012345
@@ -40,7 +44,6 @@ const grid = [
   "E              ", // 14
 ].map(line => line.split('').map(toCharId));
 
-const localeData = new LocaleData('fr', gaddagData);
 const board = new Board(localeData, grid, 'PTBYE??'.split('').map(toCharId))
 console.time('solve');
 const moves = [...board.solve().values()];
@@ -81,7 +84,7 @@ function displayGrid(grid: number[][], move: any): void {
         return;
       }
 
-      let tileOutput = ' ' + (num === -1 ? '.' : board.localeData.alphabet[num]) + ' ';
+      let tileOutput = ' ' + (num === -1 ? '.' : board.localeData.upperAlphabet[num]) + ' ';
       lineOutput += tileOutput;
     });
     console.log(lineOutput);

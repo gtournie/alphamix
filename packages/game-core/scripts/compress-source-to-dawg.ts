@@ -1,19 +1,38 @@
 /**
- * Compresses dictionary source files (data/dictionaries/dict-{locale}.js)
- * into DAWG binary files (data/dictionaries-dawg/{locale}.bin).
+ * Compresses dictionary source files (dictionaries/source/{locale}.js)
+ * into DAWG binary files (dictionaries/dawg/{locale}.bin).
  *
- * Only compresses dictionaries that don't already have a .bin output.
+ * Only compresses dictionaries that don't already have a .bin output — pass
+ * `--force` to rebuild existing ones (mandatory whenever the binary layout
+ * changes; otherwise a stale binary keeps shipping silently).
  *
- * Usage: bun run scripts/compress-to-dawg.ts
+ * When the alphabet itself changes (edits to TILE_INFO_BY_LOCALES, added/removed
+ * letters), DAWG *and* GADDAG must be regenerated as a pair — otherwise char_ids
+ * drift between them. Run `bun run compress:all` in that case; LocaleData's
+ * shape-check at load will throw a clear error if only one side was rebuilt.
+ *
+ * Binary layout: [estimatedGaddagNodes, ...nodes]
+ *   - [0]  : upper bound on GADDAG nodes (used to size the WASM arena during conversion)
+ *   - [1..]: DAWG nodes, starting with the root's first-child sibling chain
+ *
+ * The alphabet is NOT stored in the file — both compression and runtime derive it
+ * from TILE_INFO_BY_LOCALES[locale].ID_TO_CHAR, which is the single source of truth.
+ *
+ * Usage: bun run scripts/compress-source-to-dawg.ts [--force]
  */
 
 import fs from 'fs';
 import path from 'path';
+import { fileURLToPath } from 'url';
+import { TILE_INFO_BY_LOCALES } from '../src2/core/game/locale/tile-configs';
 
-const DICTIONARIES_DIR = path.resolve(import.meta.dir, '../dictionaries/source');
-const OUTPUT_DIR = path.resolve(import.meta.dir, '../dictionaries/dawg');
-
-// --- DAWG compression logic ---
+// `import.meta.dir` is Bun-only; under Vitest (Node) this script is imported
+// just for `compressToDawg`, and top-level `import.meta.dir` resolves to
+// `undefined`, which crashes `path.resolve`. The URL-based derivation works
+// in both runtimes, so tests that import this module don't explode at load.
+const HERE = path.dirname(fileURLToPath(import.meta.url));
+const DICTIONARIES_DIR = path.resolve(HERE, '../dictionaries/source');
+const OUTPUT_DIR = path.resolve(HERE, '../dictionaries/dawg');
 
 interface Node {
   id: number;
@@ -24,27 +43,71 @@ interface Node {
   firstChildIndex: number;
 }
 
-export function compressToDawg(words: string[], locale: string): Uint32Array {
-  const SEPARATOR = '+';
-  const ALPHABET_SET = new Set<string>();
-  for (const word of words) {
-    for (let i = 0, len = word.length; i < len; i++) {
-      ALPHABET_SET.add(word.charAt(i));
+/**
+ * Walks the DAWG buffer produced by `compressToDawg` to check membership of a
+ * single word. Exported so the buggy paths can be tested directly.
+ *
+ * Root's sibling chain starts at index 1 (index 0 is the estimatedGaddagNodes
+ * header word). A node's child pointer is stored in the low 24 bits; leaves
+ * serialize with pointer = 0. When the query still has letters left to walk
+ * but we've matched a leaf, the word isn't in the dict — returning false
+ * early here prevents the subsequent iteration from reading `data[0]` (the
+ * header) and misinterpreting its bits as a node.
+ */
+export function dawgContains(
+  data: Uint32Array,
+  charToId: ReadonlyMap<string, number>,
+  word: string
+): boolean {
+  let currentIndex = 1;
+  const wordLen = word.length;
+
+  for (let i = 0; i < wordLen; i++) {
+    const targetCharId = charToId.get(word.charAt(i));
+    if (targetCharId === undefined) return false;
+
+    while (true) {
+      const nodeVal = data[currentIndex];
+      const charId = (nodeVal >>> 26) & 0x3F;
+      const hasMore = (nodeVal >>> 24) & 0x1;
+
+      if (charId === targetCharId) {
+        if (i === wordLen - 1) return ((nodeVal >>> 25) & 0x1) === 1;
+        const nextIndex = nodeVal & 0xFFFFFF;
+        if (nextIndex === 0) return false; // leaf — no longer word shares this prefix
+        currentIndex = nextIndex;
+        break;
+      }
+      if (!hasMore) return false;
+      currentIndex++;
     }
   }
-  const ALPHABET = [SEPARATOR, ...[...ALPHABET_SET.keys()].sort((a, b) => a.localeCompare(b, locale, { sensitivity: 'base' }))];
+  return false; // only reachable for the empty string
+}
 
-  const ALPHABET_CODE_TO_CHAR_ID = new Array(65536);
-  ALPHABET.forEach((c, index) => { ALPHABET_CODE_TO_CHAR_ID[c.charCodeAt(0)] = index; });
+/**
+ * Produces a DAWG binary with layout `[estimatedGaddagNodes, ...nodes]`.
+ *
+ * Child pointers inside DAWG nodes are absolute indices into this full buffer
+ * (position 0 = estimatedGaddagNodes header word; root's first child lives at
+ * index 1). Downstream consumers — notably the WASM converter — rely on this
+ * layout, so the buffer must never be sliced before being passed along.
+ */
+export function compressToDawg(words: string[], locale: string): Uint32Array {
+  const tileInfo = TILE_INFO_BY_LOCALES[locale];
+  if (!tileInfo) throw new Error(`No TILE_INFO for locale "${locale}"`);
+  const ID_TO_CHAR = tileInfo.ID_TO_CHAR;
+  const CHAR_TO_ID = tileInfo.CHAR_TO_ID;
+  const alphabetLen = ID_TO_CHAR.length;
 
   // PASS 1: Build the trie
-  let totalGaddagNodes = 1;
+  let estimatedGaddagNodes = 1;
 
   const root: Node = {
     id: 0,
     endOfWord: false,
     hasMoreSiblings: false,
-    children: new Array(ALPHABET.length),
+    children: new Array(alphabetLen),
     childrenCount: 0,
     firstChildIndex: 0
   };
@@ -52,18 +115,19 @@ export function compressToDawg(words: string[], locale: string): Uint32Array {
   console.time('  build trie');
   for (const word of words) {
     const len = word.length;
-    totalGaddagNodes += len * (len + 1);
+    estimatedGaddagNodes += len * (len + 1);
     let current = root;
 
     for (let i = 0; i < len; i++) {
-      const charId = ALPHABET_CODE_TO_CHAR_ID[word.charCodeAt(i)];
+      const charId = CHAR_TO_ID.get(word.charAt(i));
+      if (charId === undefined) throw new Error(`Char "${word.charAt(i)}" in word "${word}" not in alphabet`);
       let next = current.children[charId];
       if (!next) {
         current.children[charId] = next = {
           id: 0,
           endOfWord: false,
           hasMoreSiblings: false,
-          children: new Array(ALPHABET.length),
+          children: new Array(alphabetLen),
           childrenCount: 0,
           firstChildIndex: 0
         };
@@ -86,7 +150,7 @@ export function compressToDawg(words: string[], locale: string): Uint32Array {
       for (let cId = children.length - 1; cId >= 0; cId--) {
         if (children[cId]) {
           children[cId] = minify(cId, children[cId]);
-          sig += ALPHABET[cId] + children[cId].id;
+          sig += ID_TO_CHAR[cId] + children[cId].id;
         }
       }
     }
@@ -104,23 +168,13 @@ export function compressToDawg(words: string[], locale: string): Uint32Array {
 
   console.time('  minify');
   const minifiedRoot = minify(0, root);
-  if (nodesBySignature.size >= 0xFFFFFF) {
-    throw new Error("DAWG is too large for 24-bit addressing");
-  }
   console.timeEnd('  minify');
 
-  // PASS 3: Flatten into Uint32Array
-  function buildUint32Array(root: Node, alphabet: string[]): Uint32Array {
+  // PASS 3: Flatten into Uint32Array.
+  // Layout: [estimatedGaddagNodes, ...nodes]. Root's children start at index 1.
+  function buildUint32Array(root: Node): Uint32Array {
     const nodeToIndex = new Map<number, number>();
-    const buffer: number[] = [];
-
-    // Header: alphabet length, then alphabet chars, then totalGaddagNodes estimate
-    const alphabetLen = alphabet.length;
-    buffer.push(alphabetLen);
-    for (let i = 0; i < alphabetLen; i++) {
-      buffer.push(ALPHABET[i].charCodeAt(0));
-    }
-    buffer.push(totalGaddagNodes);
+    const buffer: number[] = [estimatedGaddagNodes];
 
     function serialize(n: Node): number {
       const cachedIndex = nodeToIndex.get(n.id);
@@ -144,6 +198,15 @@ export function compressToDawg(words: string[], locale: string): Uint32Array {
         const child = n.children[charId];
         if (child) {
           const childPointer = serialize(child);
+          // Pointers are buffer indices capped at 24 bits. `& 0xFFFFFF` would
+          // silently truncate anything larger, producing a DAWG whose lookups
+          // wander into the wrong subtree. The earlier minify-time check on
+          // `nodesBySignature.size` was off: it bounded the unique-node count,
+          // but the pointer is a buffer index and the buffer holds one slot
+          // per sibling, so it grows faster than the unique-node count.
+          if (childPointer > 0xFFFFFF) {
+            throw new Error(`DAWG is too large for 24-bit addressing (pointer ${childPointer} > 0xFFFFFF)`);
+          }
           const hasMore = i < count - 1 ? 1 : 0;
           const eow = child.endOfWord ? 1 : 0;
           // Binary layout: [charId: 6b] [eow: 1b] [hasMore: 1b] [pointer: 24b]
@@ -161,38 +224,10 @@ export function compressToDawg(words: string[], locale: string): Uint32Array {
     return new Uint32Array(buffer);
   }
 
-  const dawgArray = buildUint32Array(minifiedRoot, ALPHABET);
+  const dawgArray = buildUint32Array(minifiedRoot);
 
-  // Verification: check a few words
   console.time('  verify');
-  function contains(data: Uint32Array, word: string): boolean {
-    let currentIndex = data[0] + 2; // Skip alphabet and totalGaddagNodes
-    const wordLen = word.length;
-
-    for (let i = 0; i < wordLen; i++) {
-      const targetCharId = ALPHABET_CODE_TO_CHAR_ID[word.charCodeAt(i)];
-      let found = false;
-
-      while (true) {
-        const nodeVal = data[currentIndex];
-        const charId = (nodeVal >>> 26) & 0x3F;
-        const hasMore = (nodeVal >>> 24) & 0x1;
-
-        if (charId === targetCharId) {
-          if (i === wordLen - 1) return ((nodeVal >>> 25) & 0x1) === 1;
-          currentIndex = nodeVal & 0xFFFFFF;
-          found = true;
-          break;
-        }
-        if (!hasMore) return false;
-        currentIndex++;
-      }
-      if (!found) return false;
-    }
-    return false;
-  }
-
-  const unfound = words.find(word => !contains(dawgArray, word));
+  const unfound = words.find(word => !dawgContains(dawgArray, CHAR_TO_ID, word));
   console.timeEnd('  verify');
 
   if (unfound) {
@@ -203,15 +238,13 @@ export function compressToDawg(words: string[], locale: string): Uint32Array {
   return dawgArray;
 }
 
-// --- Main ---
+const FORCE = process.argv.includes('--force');
 
 async function main() {
-  // Ensure output directory exists
   if (!fs.existsSync(OUTPUT_DIR)) {
     fs.mkdirSync(OUTPUT_DIR, { recursive: true });
   }
 
-  // List {locale}.js files
   const files = fs.readdirSync(DICTIONARIES_DIR)
     .filter(f => f.match(/^(.+)\.js$/));
 
@@ -224,18 +257,16 @@ async function main() {
     const locale = file.match(/^(.+)\.js$/)![1];
     const outputPath = path.join(OUTPUT_DIR, `${locale}.bin`);
 
-    if (fs.existsSync(outputPath)) {
-      console.log(`[${locale}] Already compressed, skipping`);
+    if (!FORCE && fs.existsSync(outputPath)) {
+      console.log(`[${locale}] Already compressed, skipping (use --force to rebuild)`);
       continue;
     }
 
     console.log(`[${locale}] Compressing ${file}...`);
 
-    // Import the dictionary (default export is a Map<string, string>)
     const dictModule = await import(path.join(DICTIONARIES_DIR, file));
     const dict: Map<string, string> = dictModule.default;
 
-    // Extract words (keys), uppercase them for the locale
     const words = [...dict.keys()].map(w => w.toLocaleUpperCase(locale));
 
     console.log(`  ${words.length} words loaded`);
