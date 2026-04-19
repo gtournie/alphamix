@@ -25,9 +25,19 @@ export interface Cell {
 
 // Coordinates of an anchor cell in THIS grid's orientation (row/col in the
 // corresponding Cell[][]).
+//
+// `minCol` is the leftmost column the anchor's goLeft search may place a rack
+// tile on. It enforces structural uniqueness across anchors: without it, two
+// anchors in the same row produce overlapping move sets that the Map-based
+// dedup has to collapse, paying the full tree-walk twice for every duplicate.
+// minCol = col - L where L = number of empty non-anchor cells immediately to
+// the left of the anchor, before hitting an occupied cell OR another anchor.
+// Following Appel & Jacobson: each move's leftmost newly-placed tile has a
+// single "home anchor" that owns it.
 export interface Anchor {
   row: number;
   col: number;
+  minCol: number;
 }
 
 // Shared singleton for mask slots that will never be read (occupied cells).
