@@ -1,12 +1,13 @@
 // Manual smoke test — not part of the shipped game nor of any automated suite.
 // Use this to eyeball the solver on a specific grid/rack. Code quality is
-// deliberately relaxed here: private-field access, loose typing, throwaway
-// helpers are all fair game. Don't import from this file.
+// deliberately relaxed here: loose typing, throwaway helpers are all fair game.
+// Don't import from this file.
 import fs from 'fs';
 import path from 'path';
-import { Board } from '../src2/core/game/solver.js';
-import LocaleData from '../src2/core/game/locale/locale-data.js';
-import { BLANK_ID, EMPTY_ID, TILE_BLANK } from '../src2/core/game/const';
+import { Board } from '../src2/core/game/Board';
+import LocaleData from '../src2/core/game/locale/locale-data';
+import { parseRack } from '../src2/core/game/__test-utils__/solver-fixtures';
+import type { Move } from '../src2/core/game/types';
 
 const LOCALE = 'fr';
 
@@ -19,63 +20,55 @@ const gaddagData = new Uint32Array(
 
 const localeData = new LocaleData(LOCALE, gaddagData);
 
-const toCharId = (c: string): number => {
-  if (c === TILE_BLANK) return BLANK_ID;
-  if (c === '.' || c === ' ') return EMPTY_ID; // grid placeholders
-  return localeData.charToId(c); // throws on unknown — catches typos in the grid
-};
-
 const grid = [
-  // 123456789012345
-  "               ", // 0
-  "           T V ", // 1
-  "          JOUES", // 2
-  "           N L ", // 3
-  "          AN A ", // 4
-  "       MOFLE TA", // 5
-  "    G     O   X", // 6
-  "   BADER  I   A", // 7
-  "    R WURMS   I", // 8
-  "  FADEE       U", // 9
-  "    E SALEE    ", // 10
-  "T ZOU  HIT     ", // 11
-  "I E R          ", // 12
-  "POKES          ", // 13
-  "E              ", // 14
-].map(line => line.split('').map(toCharId));
+  '...............',
+  '...........T.V.',
+  '..........JOUES',
+  '...........N.L.',
+  '..........AN.A.',
+  '.......MOFLE.TA',
+  '....G.....O...X',
+  '...BADER..I...A',
+  '....R.WURMS...I',
+  '..FADEE.......U',
+  '....E.SALEE....',
+  'T.ZOU..HIT.....',
+  'I.E.R..........',
+  'POKES..........',
+  'E..............',
+].map(line => [...line]);
 
-const board = new Board(localeData, grid, 'PTBYE??'.split('').map(toCharId))
+const board = new Board(localeData, grid, parseRack(localeData, 'PTBYE??'));
 console.time('solve');
-const moves = [...board.solve().values()];
+const moves = [...board.moves().values()];
 console.timeEnd('solve');
 
 if (moves.length) {
   console.log(`Found ${moves.length} moves`);
-  let sorted = moves.sort((a, b) => a.score < b.score ? 1 : -1);
+  const sorted = moves.sort((a, b) => a.score < b.score ? 1 : -1);
 
-  const best = sorted[0]
   sorted
     .slice(0, 1)
-    .forEach((best, index) => {
-      console.log("\n============================================\n");
-      console.log(JSON.stringify(best))
-      displayGrid(board.hGrid, best);
-    })
+    .forEach((best) => {
+      console.log('\n============================================\n');
+      console.log(JSON.stringify(best));
+      displayGrid(grid, best);
+    });
 } else {
-  console.log("No moves found");
+  console.log('No moves found');
 }
 
-function displayGrid(grid: number[][], move: any): void {
+function displayGrid(grid: string[][], move: Move): void {
   grid.forEach((line, y) => {
     let lineOutput = '';
     let index = 0;
     let start = false;
-    line.forEach((num, x) => {
+    line.forEach((char, x) => {
       if (move.row === y && move.col === x) {
         start = true;
       }
       if (start === true && index < move.word.length) {
-        if (grid[y][x] !== -1) {
+        if (grid[y][x] !== '.') {
           lineOutput += ' ' + move.word.charAt(index) + ' ';
         } else {
           lineOutput += ' \x1b[32m' + move.word.charAt(index) + '\x1b[0m ';
@@ -83,9 +76,7 @@ function displayGrid(grid: number[][], move: any): void {
         index++;
         return;
       }
-
-      let tileOutput = ' ' + (num === -1 ? '.' : board.localeData.upperAlphabet[num]) + ' ';
-      lineOutput += tileOutput;
+      lineOutput += ' ' + char + ' ';
     });
     console.log(lineOutput);
   });

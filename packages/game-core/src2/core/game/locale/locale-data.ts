@@ -35,7 +35,7 @@ export default class LocaleData {
   public readonly emptyAlphabetMask: readonly number[];
   // Backing map for `charToId`. Private + typed `ReadonlyMap` so callers cannot
   // bypass the throw-on-unknown semantics by poking `.get()` directly.
-  readonly #charToIdMap: ReadonlyMap<string, number>;
+  private readonly charToIdMap: ReadonlyMap<string, number>;
 
   constructor(public locale: string, public gaddagData: Uint32Array) {
     const tileInfo = TILE_INFO_BY_LOCALES[locale];
@@ -49,7 +49,7 @@ export default class LocaleData {
 
     this.tileScores = tileInfo.TILE_SCORES;
     this.tileBagNewContent = tileInfo.TILE_BAG_NEW_CONTENT;
-    this.#charToIdMap = tileInfo.CHAR_TO_ID;
+    this.charToIdMap = tileInfo.CHAR_TO_ID;
 
     const fullMask = new Array<number>(this.alphabetSize).fill(1);
     fullMask[0] = 0;
@@ -68,7 +68,7 @@ export default class LocaleData {
    * `CHAR_TO_ID.get(c) ?? throw` dance.
    */
   public charToId(c: string): number {
-    const id = this.#charToIdMap.get(c);
+    const id = this.charToIdMap.get(c);
     if (id === undefined) {
       throw new Error(`Unknown char "${c}" (code ${c.charCodeAt(0)}) for locale "${this.locale}"`);
     }

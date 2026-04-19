@@ -65,11 +65,11 @@ static inline void ensure_node(void) {
     }
 }
 
-// Lookup table unique à la place de 4 tableaux multidimensionnels
-// Niveau 0: [0, MAX_ALPHABET)
-// Niveau 1: [MAX_ALPHABET, MAX_ALPHABET + MAX_ALPHABET^2)
-// Niveau 2: [MAX_ALPHABET + MAX_ALPHABET^2, MAX_ALPHABET + MAX_ALPHABET^2 + MAX_ALPHABET^3)
-// Niveau 3: [MAX_ALPHABET + MAX_ALPHABET^2 + MAX_ALPHABET^3, ...]
+// Single lookup table replacing 4 multidimensional arrays
+// Level 0: [0, MAX_ALPHABET)
+// Level 1: [MAX_ALPHABET, MAX_ALPHABET + MAX_ALPHABET^2)
+// Level 2: [MAX_ALPHABET + MAX_ALPHABET^2, MAX_ALPHABET + MAX_ALPHABET^2 + MAX_ALPHABET^3)
+// Level 3: [MAX_ALPHABET + MAX_ALPHABET^2 + MAX_ALPHABET^3, ...]
 #define LEVEL_0_BASE 0
 #define LEVEL_1_BASE MAX_ALPHABET
 #define LEVEL_2_BASE (MAX_ALPHABET + MAX_ALPHABET * MAX_ALPHABET)
@@ -104,7 +104,7 @@ size_t hash_entry_capacity = 0;
 
 GaddagNode node_templates[MAX_ALPHABET];
 
-// Cache pour accélérer l'insertion via les rotations précédentes
+// Cache to speed up insertion via previous rotations
 uint32_t last_split_path[MAX_WORD_LEN + 1][MAX_WORD_LEN + 1];
 uint8_t last_split_chars[MAX_WORD_LEN + 1][MAX_WORD_LEN + 1];
 int last_split_len[MAX_WORD_LEN + 1];
@@ -141,24 +141,24 @@ static inline void set_minified_id(uint32_t* packed, uint32_t minified_id) {
     *packed = (*packed & 0xFE000000) | (minified_id & 0x1FFFFFF);
 }
 
-// Masque pour comparer minified_id (bits 0-24) et char_id (bits 25-30) en un seul coup
+// Mask to compare minified_id (bits 0-24) and char_id (bits 25-30) in a single op
 #define PACKED_CHAR_AND_MINIFIED_MASK 0x7FFFFFFF  // Bits 0-30, ignore bit 31 (end_of_word)
 
 uint8_t alphabet_len = 0;
 
 // Branchless helpers
 static inline void prefetch_if(uint32_t idx) {
-    // Préfetch seulement si idx != 0, sans branche
+    // Prefetch only if idx != 0, branchless
     if (unlikely(idx != 0)) __builtin_prefetch(&node_arena[idx], 0, 1);
 }
 
 static inline uint32_t select_branchless(int condition, uint32_t a, uint32_t b) {
-    // Retourne a si condition vrai, b sinon, sans branche
+    // Return a if condition is true, b otherwise, branchless
     return b ^ ((-condition) & (a ^ b));
 }
 
 static inline void maybe_set_eow(uint32_t* packed, int should_set) {
-    // Set end_of_word sans branche
+    // Set end_of_word branchless
     *packed |= ((-should_set) & (1U << 31));
 }
 
@@ -197,7 +197,7 @@ void reset_memory() {
 }
 
 
-// Accesseurs pour la table de lookup aplatie
+// Accessors for the flattened lookup table
 static inline uint32_t* lookup_level0(uint8_t target) {
     return &lookup_table[LEVEL_0_BASE + target];
 }
@@ -218,7 +218,7 @@ static inline uint32_t* lookup_level3(uint8_t p0, uint8_t p1, uint8_t p2, uint8_
 void insert_rotated_path(const uint8_t* word, int total_len, int split) {
     uint8_t rotation[MAX_WORD_WITH_SEPARATOR_LEN];
     
-    // Reverse copy du début : word[split-1] down to word[0]
+    // Reverse copy of the start: word[split-1] down to word[0]
     for (int i = 0; i < split; i++) {
         rotation[i] = word[split - 1 - i];
     }
@@ -226,7 +226,7 @@ void insert_rotated_path(const uint8_t* word, int total_len, int split) {
     // Separator au milieu
     rotation[split] = SEPARATOR_ID;
     
-    // Forward copy du reste avec memcpy si possible
+    // Forward copy of the rest, using memcpy when possible
     int tail_len = total_len - split - 1;
     if (tail_len > 0) {
         memcpy(&rotation[split + 1], &word[split], tail_len);
@@ -606,7 +606,7 @@ uint32_t* convert_dawg_to_gaddag(uint32_t* input, int in_len, int alphabet_len_a
     output_capacity = (size_t)in_len;
     output_size = 0;
 
-    // Allouer la table de lookup unique au lieu de 4 tableaux
+    // Allocate the single lookup table in place of 4 arrays
     lookup_table = calloc(LOOKUP_TABLE_SIZE, sizeof(uint32_t));
     if (!lookup_table) goto fail;
 
@@ -633,7 +633,7 @@ uint32_t* convert_dawg_to_gaddag(uint32_t* input, int in_len, int alphabet_len_a
     traverse_source(input, 1, (uint32_t)in_len, word_buffer, 0);
     if (conversion_failed) goto fail;
 
-    // Libérer la table de lookup immédiatement après utilisation
+    // Free the lookup table immediately after use
     free(lookup_table);
     lookup_table = NULL;
 
@@ -642,7 +642,7 @@ uint32_t* convert_dawg_to_gaddag(uint32_t* input, int in_len, int alphabet_len_a
     uint32_t rmid = minify(0);
     if (conversion_failed) goto fail;
 
-    // hash_buckets n'est plus utilisé après minify, libérer immédiatement
+    // hash_buckets is no longer used after minify, free immediately
     free(hash_buckets);
     hash_buckets = NULL;
 
@@ -660,11 +660,11 @@ uint32_t* convert_dawg_to_gaddag(uint32_t* input, int in_len, int alphabet_len_a
     free(v);
     if (conversion_failed) goto fail;
 
-    // Libérer hash_entries après serialize
+    // Free hash_entries after serialize
     free(hash_entries);
     hash_entries = NULL;
 
-    // Libérer node_arena après sérialisation (output_buffer reuse input, pas node_arena)
+    // Free node_arena after serialization (output_buffer reuses input, not node_arena)
     free(node_arena);
     node_arena = NULL;
     node_count = 0;

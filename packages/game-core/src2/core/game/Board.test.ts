@@ -1,20 +1,18 @@
 import { beforeAll, describe, expect, it, vi } from 'vitest';
 import fs from 'fs';
 import path from 'path';
-import { Board } from './solver';
+import { Board } from './Board';
 import LocaleData from './locale/locale-data';
 import {
   loadLocale,
   emptyGrid,
-  parseGrid,
   parseRack,
   findMove,
   mustFindMove,
-  bestMove,
   sortMoves,
 } from './__test-utils__/solver-fixtures';
 import type { Move } from './types';
-import { BLANK_ID, EMPTY_ID, SEPARATOR_ID, TILE_RACK_SIZE } from './const';
+import { BLANK_ID, BOARD_EMPTY_SQUARE, SEPARATOR_ID, TILE_RACK_SIZE } from './const';
 import { TILE_INFO_BY_LOCALES } from './locale/tile-configs';
 import { compressToDawg } from '../../../scripts/compress-source-to-dawg';
 import { convertDawgToGaddag } from './utils/dawg-to-gaddag';
@@ -33,7 +31,7 @@ beforeAll(() => {
 describe('A. Opening move', () => {
   it('A0: every move passes through (7,7) and has word.length >= 2', () => {
     const rack = parseRack(zxx, 'BASECAR');
-    const moves = new Board(zxx, emptyGrid(), rack).solve();
+    const moves = new Board(zxx, emptyGrid(), rack).moves();
     expect(moves.size).toBeGreaterThan(0);
     for (const m of moves.values()) {
       expect(m.word.length).toBeGreaterThanOrEqual(2);
@@ -48,7 +46,7 @@ describe('A. Opening move', () => {
 
   it('A1: BASE is among the moves when the rack can form it', () => {
     const rack = parseRack(zxx, 'BASECAR');
-    const moves = new Board(zxx, emptyGrid(), rack).solve();
+    const moves = new Board(zxx, emptyGrid(), rack).moves();
     const base = findMove(moves, { word: 'BASE' });
     expect(base).toBeDefined();
     expect(base!.score).toBeGreaterThan(0);
@@ -56,7 +54,7 @@ describe('A. Opening move', () => {
 
   it('A2: first move through center (7,7) applies the W2 bonus', () => {
     const rack = parseRack(zxx, 'PATEZER');
-    const moves = new Board(zxx, emptyGrid(), rack).solve();
+    const moves = new Board(zxx, emptyGrid(), rack).moves();
     const pate = findMove(moves, { word: 'PATE', row: 7, col: 7, dir: 'H' });
     expect(pate).toBeDefined();
     expect(pate!.score).toBe(12);
@@ -64,13 +62,13 @@ describe('A. Opening move', () => {
 
   it('A5: no valid word = empty result set', () => {
     const rack = parseRack(zxx, 'KKKKKKK');
-    const moves = new Board(zxx, emptyGrid(), rack).solve();
+    const moves = new Board(zxx, emptyGrid(), rack).moves();
     expect(moves.size).toBe(0);
   });
 
   it('A6: first move of 7 tiles triggers the +50 bingo bonus', () => {
     const rack = parseRack(zxx, 'BATEAUX');
-    const moves = new Board(zxx, emptyGrid(), rack).solve();
+    const moves = new Board(zxx, emptyGrid(), rack).moves();
     const m = findMove(moves, { word: 'BATEAUX', row: 7, col: 7, dir: 'H' });
     expect(m).toBeDefined();
     expect(m!.usedLetters).toBe('BATEAUX');
@@ -82,9 +80,8 @@ describe('A. Opening move', () => {
 // B. Anchors & connectivity (mid-game, rack = 7)
 // ----------------------------------------------------------------------------
 describe('B. Anchors and connectivity', () => {
-  function gridWithChat(): number[][] {
-    const g = emptyGrid();
-    return parseGrid(zxx, [
+  function gridWithChat(): string[][] {
+    return [
       '...............',
       '...............',
       '...............',
@@ -100,13 +97,13 @@ describe('B. Anchors and connectivity', () => {
       '...............',
       '...............',
       '...............',
-    ]);
+    ].map(l => [...l]);
   }
 
   it('B1: every move touches or overlaps a pre-placed tile area', () => {
     const grid = gridWithChat();
     const rack = parseRack(zxx, 'ESACBRT');
-    const moves = new Board(zxx, grid, rack).solve();
+    const moves = new Board(zxx, grid, rack).moves();
     expect(moves.size).toBeGreaterThan(0);
     for (const m of moves.values()) {
       const rows = m.dir === 'H' ? [m.row] : Array.from({ length: m.word.length }, (_, i) => m.row + i);
@@ -122,7 +119,7 @@ describe('B. Anchors and connectivity', () => {
   it('B2: remote zones unreachable from existing tiles produce no moves', () => {
     const grid = gridWithChat();
     const rack = parseRack(zxx, 'ESACBRT');
-    const moves = new Board(zxx, grid, rack).solve();
+    const moves = new Board(zxx, grid, rack).moves();
     for (const m of moves.values()) {
       const startsInRemote = m.row <= 4 && m.col <= 4
         && (m.dir === 'H' ? m.col + m.word.length - 1 <= 4 : m.row + m.word.length - 1 <= 4);
@@ -133,7 +130,7 @@ describe('B. Anchors and connectivity', () => {
   it('B4: suffix extension — add letters on the right of an existing word', () => {
     const grid = gridWithChat();
     const rack = parseRack(zxx, 'SZZZZZZ');
-    const moves = new Board(zxx, grid, rack).solve();
+    const moves = new Board(zxx, grid, rack).moves();
     const chats = findMove(moves, { word: 'CHATS', row: 7, col: 7, dir: 'H' });
     expect(chats).toBeDefined();
     expect(chats!.usedLetters).toBe('S');
@@ -141,7 +138,7 @@ describe('B. Anchors and connectivity', () => {
   });
 
   it('B3: prefix extension — add letters on the left of an existing word', () => {
-    const grid = parseGrid(zxx, [
+    const grid = [
       '...............',
       '...............',
       '...............',
@@ -157,9 +154,9 @@ describe('B. Anchors and connectivity', () => {
       '...............',
       '...............',
       '...............',
-    ]);
+    ].map(l => [...l]);
     const rack = parseRack(zxx, 'RZZZZZZ');
-    const moves = new Board(zxx, grid, rack).solve();
+    const moves = new Board(zxx, grid, rack).moves();
     const rose = findMove(moves, { word: 'ROSE', row: 7, col: 6, dir: 'H' });
     expect(rose).toBeDefined();
     expect(rose!.usedLetters).toBe('R');
@@ -167,7 +164,7 @@ describe('B. Anchors and connectivity', () => {
   });
 
   it('B5: through-extension — a new word reuses pre-placed tiles in the middle', () => {
-    const grid = parseGrid(zxx, [
+    const grid = [
       '...............',
       '...............',
       '...............',
@@ -183,9 +180,9 @@ describe('B. Anchors and connectivity', () => {
       '...............',
       '...............',
       '...............',
-    ]);
+    ].map(l => [...l]);
     const rack = parseRack(zxx, 'BESZZZZ');
-    const moves = new Board(zxx, grid, rack).solve();
+    const moves = new Board(zxx, grid, rack).moves();
     const bases = findMove(moves, { word: 'BASES', row: 7, col: 6, dir: 'H' });
     expect(bases).toBeDefined();
     expect(bases!.usedLetters).toBe('BES');
@@ -193,7 +190,7 @@ describe('B. Anchors and connectivity', () => {
   });
 
   it('B6: parallel placement creates valid cross-words on every shared column', () => {
-    const grid = parseGrid(zxx, [
+    const grid = [
       '...............',
       '...............',
       '...............',
@@ -209,9 +206,9 @@ describe('B. Anchors and connectivity', () => {
       '...............',
       '...............',
       '...............',
-    ]);
+    ].map(l => [...l]);
     const rack = parseRack(zxx, 'TASZZZZ');
-    const moves = new Board(zxx, grid, rack).solve();
+    const moves = new Board(zxx, grid, rack).moves();
     const tas = findMove(moves, { word: 'TAS', row: 8, col: 7, dir: 'H' });
     expect(tas).toBeDefined();
     expect(tas!.score).toBe(11);
@@ -223,7 +220,7 @@ describe('B. Anchors and connectivity', () => {
 // ----------------------------------------------------------------------------
 describe('C. Cross-words', () => {
   it('C1: a move with a valid cross-word is kept', () => {
-    const grid = parseGrid(zxx, [
+    const grid = [
       '...............',
       '...............',
       '...............',
@@ -239,9 +236,9 @@ describe('C. Cross-words', () => {
       '...............',
       '...............',
       '...............',
-    ]);
+    ].map(l => [...l]);
     const rack = parseRack(zxx, 'ASZZZZZ');
-    const moves = new Board(zxx, grid, rack).solve();
+    const moves = new Board(zxx, grid, rack).moves();
     const as = findMove(moves, { word: 'AS', row: 8, col: 7, dir: 'H' });
     expect(as).toBeDefined();
     expect(as!.score).toBe(8);
@@ -250,7 +247,7 @@ describe('C. Cross-words', () => {
   it('C2: a move creating an invalid cross-word is filtered out', () => {
     // Under Z at (7,7) only ZE is valid vertically. Any horizontal move placing a tile at
     // (8,7) must therefore have E in that position.
-    const grid = parseGrid(zxx, [
+    const grid = [
       '...............',
       '...............',
       '...............',
@@ -266,9 +263,9 @@ describe('C. Cross-words', () => {
       '...............',
       '...............',
       '...............',
-    ]);
+    ].map(l => [...l]);
     const rack = parseRack(zxx, 'TAZZZZZ');
-    const moves = new Board(zxx, grid, rack).solve();
+    const moves = new Board(zxx, grid, rack).moves();
     const badMove = findMove(moves, { word: 'TA', row: 8, col: 7, dir: 'H' });
     expect(badMove).toBeUndefined();
     for (const m of moves.values()) {
@@ -280,7 +277,7 @@ describe('C. Cross-words', () => {
   });
 
   it('C3: multiple cross-words add their scores independently', () => {
-    const grid = parseGrid(zxx, [
+    const grid = [
       '...............',
       '...............',
       '...............',
@@ -296,16 +293,16 @@ describe('C. Cross-words', () => {
       '...............',
       '...............',
       '...............',
-    ]);
+    ].map(l => [...l]);
     const rack = parseRack(zxx, 'TASZZZZ');
-    const moves = new Board(zxx, grid, rack).solve();
+    const moves = new Board(zxx, grid, rack).moves();
     const tas = findMove(moves, { word: 'TAS', row: 8, col: 7, dir: 'H' });
     expect(tas).toBeDefined();
     expect(tas!.score).toBe(11);
   });
 
   it('C4: pure extension produces no cross-word, only the main-word score', () => {
-    const grid = parseGrid(zxx, [
+    const grid = [
       '...............',
       '...............',
       '...............',
@@ -321,16 +318,16 @@ describe('C. Cross-words', () => {
       '...............',
       '...............',
       '...............',
-    ]);
+    ].map(l => [...l]);
     const rack = parseRack(zxx, 'SZZZZZZ');
-    const moves = new Board(zxx, grid, rack).solve();
+    const moves = new Board(zxx, grid, rack).moves();
     const chats = findMove(moves, { word: 'CHATS', row: 7, col: 7, dir: 'H' });
     expect(chats).toBeDefined();
     expect(chats!.score).toBe(11);
   });
 
   it('C5: shortest legal move — 1 new tile + 1 pre-placed = 2-letter word', () => {
-    const grid = parseGrid(zxx, [
+    const grid = [
       '...............',
       '...............',
       '...............',
@@ -346,9 +343,9 @@ describe('C. Cross-words', () => {
       '...............',
       '...............',
       '...............',
-    ]);
+    ].map(l => [...l]);
     const rack = parseRack(zxx, 'TZZZZZZ');
-    const moves = new Board(zxx, grid, rack).solve();
+    const moves = new Board(zxx, grid, rack).moves();
     const te = findMove(moves, { word: 'TE', row: 6, col: 7, dir: 'V' });
     expect(te).toBeDefined();
     expect(te!.usedLetters).toBe('T');
@@ -363,7 +360,7 @@ describe('D. Scoring', () => {
   it('D6: pre-placed tiles contribute base letter score — bonuses not re-applied', () => {
     // Extend pre-placed CHAT with S on L2(7,11). CHAT's C already sits on W2(7,7) but the
     // W2 must NOT double the final word (bonuses only apply to newly placed tiles).
-    const grid = parseGrid(zxx, [
+    const grid = [
       '...............',
       '...............',
       '...............',
@@ -379,16 +376,16 @@ describe('D. Scoring', () => {
       '...............',
       '...............',
       '...............',
-    ]);
+    ].map(l => [...l]);
     const rack = parseRack(zxx, 'SZZZZZZ');
-    const moves = new Board(zxx, grid, rack).solve();
+    const moves = new Board(zxx, grid, rack).moves();
     const chats = findMove(moves, { word: 'CHATS', row: 7, col: 7, dir: 'H' });
     expect(chats!.score).toBe(11);
   });
 
   it('D8: +50 bingo bonus applies when all 7 rack tiles are placed', () => {
     const rack = parseRack(zxx, 'BATEAUX');
-    const moves = new Board(zxx, emptyGrid(), rack).solve();
+    const moves = new Board(zxx, emptyGrid(), rack).moves();
     const m = findMove(moves, { word: 'BATEAUX', row: 7, col: 7, dir: 'H' });
     expect(m!.usedLetters.length).toBe(TILE_RACK_SIZE);
     expect(m!.score).toBe(88);
@@ -397,7 +394,7 @@ describe('D. Scoring', () => {
   it('D9: no +50 bonus when one of the 7-letter word tiles was pre-placed', () => {
     // Play BATEAUX by reusing the pre-placed A at (7,7). Only 6 tiles come from the rack,
     // so the bingo bonus does not trigger.
-    const grid = parseGrid(zxx, [
+    const grid = [
       '...............',
       '...............',
       '...............',
@@ -413,9 +410,9 @@ describe('D. Scoring', () => {
       '...............',
       '...............',
       '...............',
-    ]);
+    ].map(l => [...l]);
     const rack = parseRack(zxx, 'BTEAUXZ');
-    const moves = new Board(zxx, grid, rack).solve();
+    const moves = new Board(zxx, grid, rack).moves();
     const m = findMove(moves, { word: 'BATEAUX', row: 7, col: 6, dir: 'H' });
     expect(m).toBeDefined();
     expect(m!.usedLetters.length).toBe(6);
@@ -425,7 +422,7 @@ describe('D. Scoring', () => {
   it('D10: two W3 bonuses compound multiplicatively (×9)', () => {
     // Play RATERONS on row 0 covering both W3 at (0,0) and (0,7). The word multiplier must
     // be 3×3 = 9 (not 3+3).
-    const grid = parseGrid(zxx, [
+    const grid = [
       '...E...........',
       '...C...........',
       '...H...........',
@@ -441,9 +438,9 @@ describe('D. Scoring', () => {
       '...............',
       '...............',
       '...............',
-    ]);
+    ].map(l => [...l]);
     const rack = parseRack(zxx, 'RATRONS');
-    const moves = new Board(zxx, grid, rack).solve();
+    const moves = new Board(zxx, grid, rack).moves();
     const m = findMove(moves, { word: 'RATERONS', row: 0, col: 0, dir: 'H' });
     expect(m).toBeDefined();
     expect(m!.usedLetters).toBe('RATRONS');
@@ -453,7 +450,7 @@ describe('D. Scoring', () => {
   it('D10b: multiple cross-words from a single placement sum independently', () => {
     // Play MAITRES with two cross-words formed simultaneously: ZE at col 7 and ES at col 8.
     // The main word score and each cross-word score must all contribute.
-    const grid = parseGrid(zxx, [
+    const grid = [
       '...............',
       '...........ECHO',
       '...........T..R',
@@ -469,9 +466,9 @@ describe('D. Scoring', () => {
       '...............',
       '...............',
       '...............',
-    ]);
+    ].map(l => [...l]);
     const rack = parseRack(zxx, 'MAITRES');
-    const moves = new Board(zxx, grid, rack).solve();
+    const moves = new Board(zxx, grid, rack).moves();
     const m = mustFindMove(moves, { word: 'MAITRES', row: 4, col: 2, dir: 'H' });
     expect(m.score).toBe(79);
   });
@@ -479,7 +476,7 @@ describe('D. Scoring', () => {
   it('D11: W2 bonus multiplies both the main word and the cross-word passing through it', () => {
     // Play CA so that C lands on W2(2,2) with a pre-placed A at (3,2) forming cross-word CA.
     // The W2 bonus at (2,2) must apply to both axes.
-    const grid = parseGrid(zxx, [
+    const grid = [
       '...............',
       '...............',
       '...............',
@@ -495,16 +492,16 @@ describe('D. Scoring', () => {
       '...............',
       '...............',
       '...............',
-    ]);
+    ].map(l => [...l]);
     const rack = parseRack(zxx, 'CAZZZZZ');
-    const moves = new Board(zxx, grid, rack).solve();
+    const moves = new Board(zxx, grid, rack).moves();
     const m = mustFindMove(moves, { word: 'CA', row: 2, col: 2, dir: 'H' });
     expect(m.score).toBe(16);
   });
 
   it('D1: L2 bonus doubles the letter score', () => {
     // Play CAS over TE so that A lands on L2 at (6,8). Cross-word CE at col 7.
-    const grid = parseGrid(zxx, [
+    const grid = [
       '...............',
       '...............',
       '...............',
@@ -520,9 +517,9 @@ describe('D. Scoring', () => {
       '...............',
       '...............',
       '...............',
-    ]);
+    ].map(l => [...l]);
     const rack = parseRack(zxx, 'CASZZZZ');
-    const moves = new Board(zxx, grid, rack).solve();
+    const moves = new Board(zxx, grid, rack).moves();
     const m = findMove(moves, { word: 'CAS', row: 6, col: 7, dir: 'H' });
     expect(m).toBeDefined();
     expect(m!.score).toBe(10);
@@ -530,7 +527,7 @@ describe('D. Scoring', () => {
 
   it('D2: L3 bonus triples the letter score', () => {
     // Play CAS so that C lands on L3 at (5,5). Cross-word CE at col 5.
-    const grid = parseGrid(zxx, [
+    const grid = [
       '...............',
       '...............',
       '...............',
@@ -546,9 +543,9 @@ describe('D. Scoring', () => {
       '...............',
       '...............',
       '...............',
-    ]);
+    ].map(l => [...l]);
     const rack = parseRack(zxx, 'CASZZZZ');
-    const moves = new Board(zxx, grid, rack).solve();
+    const moves = new Board(zxx, grid, rack).moves();
     const m = findMove(moves, { word: 'CAS', row: 5, col: 5, dir: 'H' });
     expect(m).toBeDefined();
     expect(m!.score).toBe(21);
@@ -556,7 +553,7 @@ describe('D. Scoring', () => {
 
   it('D3: W2 bonus doubles the word score', () => {
     // Play CAS so that C lands on W2 at (1,1). Cross-word CE at col 1.
-    const grid = parseGrid(zxx, [
+    const grid = [
       '...............',
       '...............',
       'SE.............',
@@ -572,9 +569,9 @@ describe('D. Scoring', () => {
       '...............',
       '...............',
       '...............',
-    ]);
+    ].map(l => [...l]);
     const rack = parseRack(zxx, 'CASZZZZ');
-    const moves = new Board(zxx, grid, rack).solve();
+    const moves = new Board(zxx, grid, rack).moves();
     const m = findMove(moves, { word: 'CAS', row: 1, col: 1, dir: 'H' });
     expect(m).toBeDefined();
     expect(m!.score).toBe(18);
@@ -582,7 +579,7 @@ describe('D. Scoring', () => {
 
   it('D4: W3 bonus triples the word score', () => {
     // Play CAS so that C lands on W3 at (0,0). Cross-word CAS at col 0 (extends AS vertical).
-    const grid = parseGrid(zxx, [
+    const grid = [
       '...............',
       'A..............',
       'SAGES..........',
@@ -598,9 +595,9 @@ describe('D. Scoring', () => {
       '...............',
       '...............',
       '...............',
-    ]);
+    ].map(l => [...l]);
     const rack = parseRack(zxx, 'CASZZZZ');
-    const moves = new Board(zxx, grid, rack).solve();
+    const moves = new Board(zxx, grid, rack).moves();
     const m = findMove(moves, { word: 'CAS', row: 0, col: 0, dir: 'H' });
     expect(m).toBeDefined();
     expect(m!.score).toBe(30);
@@ -608,7 +605,7 @@ describe('D. Scoring', () => {
 
   it('D5: L2 and W2 bonuses combined on same move', () => {
     // Play CARS so that C lands on L2(3,0) and S lands on W2(3,3). Cross-word CAS at col 0.
-    const grid = parseGrid(zxx, [
+    const grid = [
       '...............',
       '...............',
       '...............',
@@ -624,9 +621,9 @@ describe('D. Scoring', () => {
       '...............',
       '...............',
       '...............',
-    ]);
+    ].map(l => [...l]);
     const rack = parseRack(zxx, 'CARSZZZ');
-    const moves = new Board(zxx, grid, rack).solve();
+    const moves = new Board(zxx, grid, rack).moves();
     const m = findMove(moves, { word: 'CARS', row: 3, col: 0, dir: 'H' });
     expect(m).toBeDefined();
     expect(m!.score).toBe(26);
@@ -635,7 +632,7 @@ describe('D. Scoring', () => {
   it('D7: W2 bonus also multiplies the cross-word', () => {
     // Play CAS so that C lands on W2 at (1,1). The W2 must apply to both the main word
     // AND the cross-word passing through that cell.
-    const grid = parseGrid(zxx, [
+    const grid = [
       '...............',
       '...............',
       '.A.............',
@@ -651,9 +648,9 @@ describe('D. Scoring', () => {
       '...............',
       '...............',
       '...............',
-    ]);
+    ].map(l => [...l]);
     const rack = parseRack(zxx, 'ASCXYWZ');
-    const moves = new Board(zxx, grid, rack).solve();
+    const moves = new Board(zxx, grid, rack).moves();
     const m = findMove(moves, { word: 'CAS', row: 1, col: 1, dir: 'H' });
     expect(m).toBeDefined();
     expect(m!.score).toBe(20);
@@ -666,7 +663,7 @@ describe('D. Scoring', () => {
 describe('E. Blanks', () => {
   it('E1: a blank is rendered in lowercase in the move word and usedLetters', () => {
     const rack = parseRack(zxx, 'BAS?STA');
-    const moves = new Board(zxx, emptyGrid(), rack).solve();
+    const moves = new Board(zxx, emptyGrid(), rack).moves();
     let found: Move | undefined;
     for (const m of moves.values()) {
       if (/[a-z]/.test(m.word)) { found = m; break; }
@@ -677,7 +674,7 @@ describe('E. Blanks', () => {
 
   it('E2: a blank contributes 0 to the letter sum (even on a W2)', () => {
     const rack = parseRack(zxx, 'BAS?ZZZ');
-    const moves = new Board(zxx, emptyGrid(), rack).solve();
+    const moves = new Board(zxx, emptyGrid(), rack).moves();
     let base: Move | undefined;
     for (const mv of moves.values()) {
       if (mv.word.toUpperCase() === 'BASE' && mv.row === 7 && mv.col === 7 && mv.dir === 'H') {
@@ -691,14 +688,14 @@ describe('E. Blanks', () => {
 
   it('E3: a rack with two blanks does not blow up the combinatorial search', () => {
     const rack = parseRack(zxx, 'BASE??Z');
-    const moves = new Board(zxx, emptyGrid(), rack).solve();
+    const moves = new Board(zxx, emptyGrid(), rack).moves();
     expect(moves.size).toBeGreaterThan(0);
   });
 
   it('E4: a blank is restricted by cross-word validity like any letter', () => {
     // Under Z at (7,7), only ZE is valid vertically. A blank placed at (8,7) can therefore
     // only represent E — the cross-word bitmask constrains blanks too.
-    const grid = parseGrid(zxx, [
+    const grid = [
       '...............',
       '...............',
       '...............',
@@ -714,9 +711,9 @@ describe('E. Blanks', () => {
       '...............',
       '...............',
       '...............',
-    ]);
+    ].map(l => [...l]);
     const rack = parseRack(zxx, '?AISAIS');
-    const moves = new Board(zxx, grid, rack).solve();
+    const moves = new Board(zxx, grid, rack).moves();
     // Any move placing at (8,7) must have letter 'E' (or 'e' as blank) in that position
     for (const m of moves.values()) {
       if (m.dir === 'V' && m.col === 7 && m.row <= 8 && m.row + m.word.length - 1 >= 8) {
@@ -736,7 +733,7 @@ describe('E. Blanks', () => {
   it('E5: W3 still multiplies the word even when a blank lands on the bonus square', () => {
     // The blank contributes 0 to the letter sum, but the W3 bonus must still triple the
     // horizontal word and the cross-word passing through that cell.
-    const grid = parseGrid(zxx, [
+    const grid = [
       '...............',
       'A..............',
       'SAGES..........',
@@ -752,9 +749,9 @@ describe('E. Blanks', () => {
       '...............',
       '...............',
       '...............',
-    ]);
+    ].map(l => [...l]);
     const rack = parseRack(zxx, '?ASXWYZ');
-    const moves = new Board(zxx, grid, rack).solve();
+    const moves = new Board(zxx, grid, rack).moves();
     let m: Move | undefined;
     for (const mv of moves.values()) {
       if (mv.word.toUpperCase() === 'CAS' && mv.row === 0 && mv.col === 0 && mv.dir === 'H'
@@ -770,7 +767,7 @@ describe('E. Blanks', () => {
     // Two blanks placed through the centre (7,7) form a legal first move, but every tile
     // contributes 0 regardless of the W2 multiplier on (7,7).
     const rack = parseRack(zxx, '??');
-    const moves = new Board(zxx, emptyGrid(), rack).solve();
+    const moves = new Board(zxx, emptyGrid(), rack).moves();
     let zeroScore: Move | undefined;
     for (const m of moves.values()) {
       if (m.score === 0 && m.usedLetters.length === 2 && /^[a-z]{2}$/.test(m.usedLetters)) {
@@ -783,15 +780,14 @@ describe('E. Blanks', () => {
   });
 
   // Pre-placed blanks (from a previous turn). Per official Scrabble rules a
-  // blank keeps its 0 score forever. `parseGrid`'s docstring already encodes
-  // the convention: lowercase 'a'-'z' in the grid input means "this tile was
-  // placed as a blank". The solver extends vertically to form ZE — Z was
-  // placed as a blank, so the main word must score E alone (1), not Z + E
-  // (11). If this test fails, the grid representation has stopped preserving
-  // blank-ness across turns and the solver has lost the Scrabble-legal
-  // guarantee for cross-turn plays.
+  // blank keeps its 0 score forever. Board's grid input convention encodes
+  // blank-ness via case: lowercase 'a'-'z' means "this tile was placed as a
+  // blank". The solver extends vertically to form zE — Z was a blank, so the
+  // main word must score E alone (1), not Z + E (11). `move.word` preserves
+  // the lowercase to surface the blank to the caller (matching how a blank
+  // placed during the current turn also renders lowercase).
   it('E8: a pre-placed blank from a previous turn still contributes 0', () => {
-    const grid = parseGrid(zxx, [
+    const grid = [
       '...............',
       '...............',
       '...............',
@@ -807,10 +803,10 @@ describe('E. Blanks', () => {
       '...............',
       '...............',
       '...............',
-    ]);
+    ].map(l => [...l]);
     const rack = parseRack(zxx, 'EAAAAAA');
-    const moves = new Board(zxx, grid, rack).solve();
-    const ze = findMove(moves, { word: 'ZE', row: 7, col: 7, dir: 'V' });
+    const moves = new Board(zxx, grid, rack).moves();
+    const ze = findMove(moves, { word: 'zE', row: 7, col: 7, dir: 'V' });
     expect(ze).toBeDefined();
     expect(ze!.score).toBe(1);
   });
@@ -821,7 +817,7 @@ describe('E. Blanks', () => {
 // ----------------------------------------------------------------------------
 describe('F. Edges', () => {
   it('F1: a move on row 0 does not read out of bounds above the board', () => {
-    const grid = parseGrid(zxx, [
+    const grid = [
       '...............',
       '.......ART.....',
       '.........A.....',
@@ -837,9 +833,9 @@ describe('F. Edges', () => {
       '...............',
       '...............',
       '...............',
-    ]);
+    ].map(l => [...l]);
     const rack = parseRack(zxx, 'ETKXWYZ');
-    const moves = new Board(zxx, grid, rack).solve();
+    const moves = new Board(zxx, grid, rack).moves();
     expect(moves.size).toBeGreaterThan(0);
     const et = findMove(moves, { word: 'ET', row: 0, col: 6, dir: 'H' });
     expect(et).toBeDefined();
@@ -847,7 +843,7 @@ describe('F. Edges', () => {
   });
 
   it('F2: a move on row 14 does not read out of bounds below the board', () => {
-    const grid = parseGrid(zxx, [
+    const grid = [
       '...............',
       '...............',
       '...............',
@@ -863,16 +859,16 @@ describe('F. Edges', () => {
       '.........A.....',
       '.......ART.....',
       '...............',
-    ]);
+    ].map(l => [...l]);
     const rack = parseRack(zxx, 'ETKXYWZ');
-    const moves = new Board(zxx, grid, rack).solve();
+    const moves = new Board(zxx, grid, rack).moves();
     const et = findMove(moves, { word: 'ET', row: 14, col: 6, dir: 'H' });
     expect(et).toBeDefined();
     expect(et!.score).toBe(12);
   });
 
   it('F6: a move ending exactly at col 14 does not overflow to col 15', () => {
-    const grid = parseGrid(zxx, [
+    const grid = [
       '...............',
       '...............',
       '...............',
@@ -888,16 +884,16 @@ describe('F. Edges', () => {
       '...............',
       '...............',
       '...............',
-    ]);
+    ].map(l => [...l]);
     const rack = parseRack(zxx, 'AJKXWYZ');
-    const moves = new Board(zxx, grid, rack).solve();
+    const moves = new Board(zxx, grid, rack).moves();
     const at = findMove(moves, { word: 'AT', row: 7, col: 13, dir: 'H' });
     expect(at).toBeDefined();
     expect(at!.score).toBe(2);
   });
 
   it('F3: a 7-letter bingo on the last row scores correctly (W3 + cross-word + +50)', () => {
-    const grid = parseGrid(zxx, [
+    const grid = [
       '...............',
       '...............',
       '...............',
@@ -913,16 +909,16 @@ describe('F. Edges', () => {
       '......ZEBRE....',
       '.......T.......',
       '...............',
-    ]);
+    ].map(l => [...l]);
     const rack = parseRack(zxx, 'BATEAUX');
-    const moves = new Board(zxx, grid, rack).solve();
+    const moves = new Board(zxx, grid, rack).moves();
     const m = findMove(moves, { word: 'BATEAUX', row: 14, col: 4, dir: 'H' });
     expect(m).toBeDefined();
     expect(m!.score).toBe(113);
   });
 
   it('F4: a heavily populated board returns a coherent move set without crashing', () => {
-    const grid = parseGrid(zxx, [
+    const grid = [
       '.N...TUBE...MER',
       'MER..A.A..ETE.O',
       'A.A..R.SAC....S',
@@ -938,16 +934,16 @@ describe('F. Edges', () => {
       'ETE......A....R',
       '.AS....L.SAGES.',
       '.S....BASES....',
-    ]);
+    ].map(l => [...l]);
     const rack = parseRack(zxx, 'MESTA??');
-    const moves = new Board(zxx, grid, rack).solve();
+    const moves = new Board(zxx, grid, rack).moves();
     expect(moves).toBeInstanceOf(Map);
   });
 
   it('F5: endgame — a rack of a single tile can still produce a move', () => {
     // End-of-bag scenario: the rack holds less than 7 tiles. solve() should still find any
     // valid 2-letter move that reuses a pre-placed tile.
-    const grid = parseGrid(zxx, [
+    const grid = [
       '...............',
       '...............',
       '....ECHO.......',
@@ -963,9 +959,9 @@ describe('F. Edges', () => {
       '............E..',
       '...............',
       '...............',
-    ]);
+    ].map(l => [...l]);
     const rack = parseRack(zxx, 'T');
-    const moves = new Board(zxx, grid, rack).solve();
+    const moves = new Board(zxx, grid, rack).moves();
     const et = findMove(moves, { word: 'ET', row: 7, col: 7, dir: 'H' });
     expect(et).toBeDefined();
   });
@@ -977,7 +973,7 @@ describe('F. Edges', () => {
 describe('G. Directionality & determinism', () => {
   it('G1: the move list has no duplicate (word, row, col, dir) entries', () => {
     const rack = parseRack(zxx, 'BASECAR');
-    const moves = new Board(zxx, emptyGrid(), rack).solve();
+    const moves = new Board(zxx, emptyGrid(), rack).moves();
     const keys = new Set<string>();
     for (const m of moves.values()) {
       const k = `${m.word.toUpperCase()}${m.row}${m.dir}${m.col}`;
@@ -988,7 +984,7 @@ describe('G. Directionality & determinism', () => {
 
   it('G2: the same word placed horizontally and vertically yields two distinct moves', () => {
     const rack = parseRack(zxx, 'BASEZZZ');
-    const moves = new Board(zxx, emptyGrid(), rack).solve();
+    const moves = new Board(zxx, emptyGrid(), rack).moves();
     const bh = findMove(moves, { word: 'BASE', dir: 'H' });
     const bv = findMove(moves, { word: 'BASE', dir: 'V' });
     expect(bh).toBeDefined();
@@ -999,8 +995,8 @@ describe('G. Directionality & determinism', () => {
   it('G4: solve() is deterministic — two runs on the same input produce identical results', () => {
     const rack1 = parseRack(zxx, 'BASECAR');
     const rack2 = parseRack(zxx, 'BASECAR');
-    const r1 = sortMoves(new Board(zxx, emptyGrid(), rack1).solve().values());
-    const r2 = sortMoves(new Board(zxx, emptyGrid(), rack2).solve().values());
+    const r1 = sortMoves(new Board(zxx, emptyGrid(), rack1).moves().values());
+    const r2 = sortMoves(new Board(zxx, emptyGrid(), rack2).moves().values());
     expect(r1).toEqual(r2);
   });
 });
@@ -1010,33 +1006,27 @@ describe('G. Directionality & determinism', () => {
 // ----------------------------------------------------------------------------
 describe('H. FR regression', () => {
   it('H1: full move list on a real FR mid-game grid matches the committed fixture', () => {
-    const toFrId = (() => {
-      const map = new Array<number>(65536).fill(EMPTY_ID);
-      fr.upperAlphabet.forEach((c, index) => { map[c.charCodeAt(0)] = index; });
-      return (c: string) => (c === '?' ? BLANK_ID : (map[c.charCodeAt(0)] ?? EMPTY_ID));
-    })();
-
     const grid = [
-      '               ',
-      '           T V ',
-      '          JOUES',
-      '           N L ',
-      '          AN A ',
-      '       MOFLE TA',
-      '    G     O   X',
-      '   BADER  I   A',
-      '    R WURMS   I',
-      '  FADEE       U',
-      '    E SALEE    ',
-      'T ZOU  HIT     ',
-      'I E R          ',
-      'POKES          ',
-      'E              ',
-    ].map(l => [...l].map(toFrId));
-    const rack = [...'PTBYE??'].map(toFrId);
+      '...............',
+      '...........T.V.',
+      '..........JOUES',
+      '...........N.L.',
+      '..........AN.A.',
+      '.......MOFLE.TA',
+      '....G.....O...X',
+      '...BADER..I...A',
+      '....R.WURMS...I',
+      '..FADEE.......U',
+      '....E.SALEE....',
+      'T.ZOU..HIT.....',
+      'I.E.R..........',
+      'POKES..........',
+      'E..............',
+    ].map(l => [...l]);
+    const rack = parseRack(fr, 'PTBYE??');
 
     const board = new Board(fr, grid, rack);
-    const actual = sortMoves(board.solve().values());
+    const actual = sortMoves(board.moves().values());
     const fixturePath = path.resolve(__dirname, '__test-utils__/h1-moves.json');
     const expected = JSON.parse(fs.readFileSync(fixturePath, 'utf8')) as Move[];
     expect(actual).toEqual(expected);
@@ -1044,11 +1034,6 @@ describe('H. FR regression', () => {
 
   it('H2: FR dictionary — CHAT extends to CHATS with L2 bonus on S', () => {
     // Pre-place CHAT at (7,7-10) in FR.
-    const toFrId = (() => {
-      const map = new Array<number>(65536).fill(EMPTY_ID);
-      fr.upperAlphabet.forEach((c, index) => { map[c.charCodeAt(0)] = index; });
-      return (c: string) => (c === '?' ? BLANK_ID : (c === '.' || c === ' ' ? EMPTY_ID : (map[c.charCodeAt(0)] ?? EMPTY_ID)));
-    })();
     const grid = [
       '...............',
       '...............',
@@ -1065,9 +1050,9 @@ describe('H. FR regression', () => {
       '...............',
       '...............',
       '...............',
-    ].map(l => [...l].map(toFrId));
-    const rack = [...'SBATEAU'].map(toFrId);
-    const moves = new Board(fr, grid, rack).solve();
+    ].map(l => [...l]);
+    const rack = parseRack(fr, 'SBATEAU');
+    const moves = new Board(fr, grid, rack).moves();
     const chats = findMove(moves, { word: 'CHATS', row: 7, col: 7, dir: 'H' });
     expect(chats).toBeDefined();
     expect(chats!.usedLetters).toBe('S');
@@ -1080,35 +1065,30 @@ describe('H. FR regression', () => {
 // I. Performance
 // ----------------------------------------------------------------------------
 describe('I. Performance', () => {
-  it('I1: solve() finishes under 100ms on a FR mid-game grid with 2 blanks in the rack', () => {
+  it('I1: moves() finishes under 100ms on a FR mid-game grid with 2 blanks in the rack', () => {
     // Reuse the exact H1 setup
-    const toFrId = (() => {
-      const map = new Array<number>(65536).fill(EMPTY_ID);
-      fr.upperAlphabet.forEach((c, index) => { map[c.charCodeAt(0)] = index; });
-      return (c: string) => (c === '?' ? BLANK_ID : (map[c.charCodeAt(0)] ?? EMPTY_ID));
-    })();
     const grid = [
-      '               ',
-      '           T V ',
-      '          JOUES',
-      '           N L ',
-      '          AN A ',
-      '       MOFLE TA',
-      '    G     O   X',
-      '   BADER  I   A',
-      '    R WURMS   I',
-      '  FADEE       U',
-      '    E SALEE    ',
-      'T ZOU  HIT     ',
-      'I E R          ',
-      'POKES          ',
-      'E              ',
-    ].map(l => [...l].map(toFrId));
-    const rack = [...'PTBYE??'].map(toFrId);
+      '...............',
+      '...........T.V.',
+      '..........JOUES',
+      '...........N.L.',
+      '..........AN.A.',
+      '.......MOFLE.TA',
+      '....G.....O...X',
+      '...BADER..I...A',
+      '....R.WURMS...I',
+      '..FADEE.......U',
+      '....E.SALEE....',
+      'T.ZOU..HIT.....',
+      'I.E.R..........',
+      'POKES..........',
+      'E..............',
+    ].map(l => [...l]);
+    const rack = parseRack(fr, 'PTBYE??');
 
     const board = new Board(fr, grid, rack);
     const t0 = performance.now();
-    board.solve();
+    board.moves();
     const dt = performance.now() - t0;
     // Reference measured at 70-80ms on dev machine. Cap at 100ms.
     // If flaky on CI, bump to 200ms.
@@ -1122,7 +1102,7 @@ describe('I. Performance', () => {
 describe('J. Sanity invariants', () => {
   it('J1: every returned move uses between 1 and 7 rack tiles', () => {
     const rack = parseRack(zxx, 'BASECAR');
-    const moves = new Board(zxx, emptyGrid(), rack).solve();
+    const moves = new Board(zxx, emptyGrid(), rack).moves();
     for (const m of moves.values()) {
       expect(m.usedLetters.length).toBeGreaterThanOrEqual(1);
       expect(m.usedLetters.length).toBeLessThanOrEqual(TILE_RACK_SIZE);
@@ -1131,14 +1111,14 @@ describe('J. Sanity invariants', () => {
 
   it('J2: no returned move is a single-letter word', () => {
     const rack = parseRack(zxx, 'BASECAR');
-    const moves = new Board(zxx, emptyGrid(), rack).solve();
+    const moves = new Board(zxx, emptyGrid(), rack).moves();
     for (const m of moves.values()) {
       expect(m.word.length).toBeGreaterThanOrEqual(2);
     }
   });
 
   it('J3: a move never overwrites a pre-placed tile with a different letter', () => {
-    const grid = parseGrid(zxx, [
+    const grid = [
       '...............',
       '...............',
       '...............',
@@ -1154,23 +1134,23 @@ describe('J. Sanity invariants', () => {
       '...............',
       '...............',
       '...............',
-    ]);
+    ].map(l => [...l]);
     const rack = parseRack(zxx, 'ESACBRT');
-    const moves = new Board(zxx, grid, rack).solve();
+    const moves = new Board(zxx, grid, rack).moves();
     for (const m of moves.values()) {
       for (let i = 0, len = m.word.length; i < len; i++) {
         const r = m.dir === 'H' ? m.row : m.row + i;
         const c = m.dir === 'H' ? m.col + i : m.col;
         const existing = grid[r][c];
-        if (existing !== EMPTY_ID) {
-          expect(m.word.charAt(i).toUpperCase()).toBe(zxx.upperAlphabet[existing]);
+        if (existing !== BOARD_EMPTY_SQUARE) {
+          expect(m.word.charAt(i).toUpperCase()).toBe(existing.toUpperCase());
         }
       }
     }
   });
 
-  it('J4: solve() on an empty rack returns an empty result set (defensive)', () => {
-    const moves = new Board(zxx, emptyGrid(), []).solve();
+  it('J4: moves() on an empty rack returns an empty result set (defensive)', () => {
+    const moves = new Board(zxx, emptyGrid(), []).moves();
     expect(moves.size).toBe(0);
   });
 });
@@ -1253,13 +1233,12 @@ describe('K. GADDAG format invariants', () => {
   // landing as some other letter.
   it('K4: hasLeftPart — a single-letter left vertical context tightens the mask on blanks', () => {
     const grid = emptyGrid();
-    const zId = zxx.upperAlphabet.indexOf('Z');
-    grid[7][7] = zId;
+    grid[7][7] = 'Z';
 
     // Rack: one blank + throwaway letters. We want the solver to place the
     // blank under the Z and see which letters it picks.
     const rack = parseRack(zxx, '?AAAAAA');
-    const moves = new Board(zxx, grid, rack).solve();
+    const moves = new Board(zxx, grid, rack).moves();
 
     // There MUST be moves — the blank as 'E' below Z forms "ZE" vertically.
     // If no vertical move covers (8,7), that's already a regression. Every move
@@ -1303,16 +1282,14 @@ describe('K. GADDAG format invariants', () => {
   // bounds checks, or if findDataChild is rewritten to assert).
   it('K5: broken vertical left-context → no bogus moves AND no findDataChild(-1,…) calls', () => {
     const grid = emptyGrid();
-    const jId = zxx.upperAlphabet.indexOf('J');
-    const zId = zxx.upperAlphabet.indexOf('Z');
-    grid[5][7] = jId;
-    grid[6][7] = zId;
+    grid[5][7] = 'J';
+    grid[6][7] = 'Z';
 
     const rack = parseRack(zxx, 'AAAAAAA');
 
     const spy = vi.spyOn(zxx, 'findDataChild');
     try {
-      const moves = new Board(zxx, grid, rack).solve();
+      const moves = new Board(zxx, grid, rack).moves();
 
       // (a) Black-box regression guard: no vertical move covering (7,7) via
       // extension past row 6.
@@ -1350,7 +1327,7 @@ describe('K. GADDAG format invariants', () => {
   it('K6: first-iter left-walk failure bails via return, not OOB fallback', () => {
     const grid = emptyGrid();
     const zId = zxx.upperAlphabet.indexOf('Z');
-    grid[7][7] = zId;
+    grid[7][7] = 'Z';
 
     const rack = parseRack(zxx, 'AAAAAAA');
 
@@ -1368,7 +1345,7 @@ describe('K. GADDAG format invariants', () => {
     });
 
     try {
-      const moves = new Board(zxx, grid, rack).solve();
+      const moves = new Board(zxx, grid, rack).moves();
 
       // Forced failure should have actually fired — otherwise the test is
       // vacuous (scenario didn't exercise the target path).
@@ -1420,11 +1397,11 @@ describe('K. GADDAG format invariants', () => {
     const grid = emptyGrid();
     const jId = zxx.upperAlphabet.indexOf('J');
     const zId = zxx.upperAlphabet.indexOf('Z');
-    grid[5][7] = jId;
-    grid[6][7] = zId;
+    grid[5][7] = 'J';
+    grid[6][7] = 'Z';
 
     const rack = parseRack(zxx, 'AAAAAAA');
-    const moves = new Board(zxx, grid, rack).solve();
+    const moves = new Board(zxx, grid, rack).moves();
 
     const jScore = zxx.tileScores[zxx.upperAlphabet[jId]];
     const zScore = zxx.tileScores[zxx.upperAlphabet[zId]];
@@ -1546,13 +1523,13 @@ describe('L. Big-alphabet regression (`1 << charId` overflow)', () => {
   // letters that shouldn't be there. The new array-indexed mask treats each
   // charId independently.
   it('L3: solver finds a move using a char_id > 31 (Κ + Α → ΚΑ or ΑΚ)', () => {
-    const grid: number[][] = Array.from({ length: 15 }, () => new Array<number>(15).fill(EMPTY_ID));
+    const grid: string[][] = Array.from({ length: 15 }, () => new Array<string>(15).fill(BOARD_EMPTY_SQUARE));
     const aGreek = locale42.upperAlphabet.indexOf('Α'); // 27
     const kGreek = locale42.upperAlphabet.indexOf('Κ'); // 36
     expect(kGreek).toBeGreaterThan(31);
 
     const rack = [aGreek, kGreek, aGreek, aGreek, aGreek, aGreek, aGreek];
-    const moves = new Board(locale42, grid, rack).solve();
+    const moves = new Board(locale42, grid, rack).moves();
 
     expect(moves.size).toBeGreaterThan(0);
 
@@ -1572,16 +1549,15 @@ describe('L. Big-alphabet regression (`1 << charId` overflow)', () => {
   // valid Κ-word. Exercises `computeVerticalConstraint`'s mask-setting loop
   // specifically for charIds spanning low and high 32-bit halves.
   it('L4: vertical constraint correctly masks both low and high charIds', () => {
-    const grid: number[][] = Array.from({ length: 15 }, () => new Array<number>(15).fill(EMPTY_ID));
-    const kGreek = locale42.upperAlphabet.indexOf('Κ');
-    grid[7][7] = kGreek;
+    const grid: string[][] = Array.from({ length: 15 }, () => new Array<string>(15).fill(BOARD_EMPTY_SQUARE));
+    grid[7][7] = 'Κ';
 
     // Rack: Α (low charId 27) + Π (high charId 42) + filler.
     const aGreek = locale42.upperAlphabet.indexOf('Α');
     const piGreek = locale42.upperAlphabet.indexOf('Π');
     const rack = [aGreek, piGreek, aGreek, aGreek, aGreek, aGreek, aGreek];
 
-    const moves = new Board(locale42, grid, rack).solve();
+    const moves = new Board(locale42, grid, rack).moves();
 
     // The dict contains ΚΑ (2-letter). There must be a vertical move covering
     // (8,7) where the placed letter is 'Α' — proves the mask accepted charId
@@ -1604,14 +1580,13 @@ describe('L. Big-alphabet regression (`1 << charId` overflow)', () => {
   // wrap point. Without the refactor, the solver would silently refuse to
   // place a blank as any Greek-range letter.
   it('L5: blank tile can be placed as any char_id in the 42-letter alphabet', () => {
-    const grid: number[][] = Array.from({ length: 15 }, () => new Array<number>(15).fill(EMPTY_ID));
-    const aGreek = locale42.upperAlphabet.indexOf('Α');
-    grid[7][7] = aGreek;
+    const grid: string[][] = Array.from({ length: 15 }, () => new Array<string>(15).fill(BOARD_EMPTY_SQUARE));
+    grid[7][7] = 'Α';
 
     // Rack: blank + A's to avoid biasing toward any specific letter.
     const aLatin = locale42.upperAlphabet.indexOf('A');
     const rack = [BLANK_ID, aLatin, aLatin, aLatin, aLatin, aLatin, aLatin];
-    const moves = new Board(locale42, grid, rack).solve();
+    const moves = new Board(locale42, grid, rack).moves();
 
     // At least one move must place the blank as Κ (charId 36, > 31) to form
     // ΑΚ/ΚΑ. The blank renders as lowercase κ in move.word.

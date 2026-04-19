@@ -2,7 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import LocaleData from '../locale/locale-data';
 import { TILE_INFO_BY_LOCALES } from '../locale/tile-configs';
-import { BLANK_ID, EMPTY_ID } from '../const';
+import { BLANK_ID, BOARD_EMPTY_SQUARE } from '../const';
 import type { Move } from '../types';
 
 const PROD_DICT_DIR = path.resolve(__dirname, '../../../../dictionaries/gaddag');
@@ -35,52 +35,20 @@ export function loadLocale(name: 'zxx' | 'fr'): LocaleData {
   return new LocaleData(name, gaddagData);
 }
 
-export function emptyGrid(): number[][] {
-  return Array.from({ length: 15 }, () => new Array(15).fill(EMPTY_ID));
-}
-
-function charToCharId(locale: LocaleData): (c: string) => number {
-  const map = new Array<number>(128).fill(EMPTY_ID);
-  // Skip index 0: it's the separator slot ('+'), not a real letter. Mapping '+' to
-  // char_id 0 would let a stray '+' in test input silently pass as a separator.
-  for (let i = 1, len = locale.upperAlphabet.length; i < len; i++) {
-    const upper = locale.upperAlphabet[i];
-    const lower = locale.lowerAlphabet[i];
-    map[upper.charCodeAt(0)] = i;
-    map[lower.charCodeAt(0)] = i;
-  }
-  return (c: string) => {
-    if (c === '.' || c === ' ') return EMPTY_ID;
-    const code = c.charCodeAt(0);
-    if (code >= map.length) return EMPTY_ID;
-    return map[code];
-  };
-}
-
 /**
- * Parses a 15-line grid description into number[][].
- * '.' or ' ' = empty. 'A'-'Z' = placed letter. 'a'-'z' = placed blank (stored as the same charId).
- * Each line must be exactly 15 characters.
+ * Empty 15×15 grid in the textual format Board accepts.
  */
-export function parseGrid(locale: LocaleData, lines: string[]): number[][] {
-  if (lines.length !== 15) throw new Error(`Expected 15 lines, got ${lines.length}`);
-  const toId = charToCharId(locale);
-  return lines.map((line, i) => {
-    if (line.length !== 15) throw new Error(`Line ${i} is ${line.length} chars, expected 15: "${line}"`);
-    return [...line].map(toId);
-  });
+export function emptyGrid(): string[][] {
+  return Array.from({ length: 15 }, () => new Array(15).fill(BOARD_EMPTY_SQUARE));
 }
 
 /**
  * Parses a rack string: '?' = blank, 'A'-'Z' (or 'a'-'z') = letter charId.
  */
 export function parseRack(locale: LocaleData, str: string): number[] {
-  const toId = charToCharId(locale);
   return [...str].map(c => {
     if (c === '?') return BLANK_ID;
-    const id = toId(c);
-    if (id === EMPTY_ID) throw new Error(`Unknown rack char '${c}' (not in alphabet nor blank)`);
-    return id;
+    return locale.charToId(c.toLocaleUpperCase(locale.locale));
   });
 }
 
