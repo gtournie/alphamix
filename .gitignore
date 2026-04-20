@@ -3,5 +3,6 @@ node_modules/
 .DS_Store
 .claude/vigil/
 .claude/tmp/
+.claude/scheduled_tasks.lock
 .history/
 .playwright-mcp/

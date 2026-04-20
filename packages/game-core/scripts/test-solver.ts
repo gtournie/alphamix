@@ -38,7 +38,7 @@ const grid = [
   'E..............',
 ].map(line => [...line]);
 
-const board = new Board(localeData, grid, parseRack(localeData, 'PTBYE??'));
+const board = new Board(localeData, grid, parseRack(localeData, [...'PTBYE??']));
 console.time('solve');
 const moves = [...board.moves().values()];
 console.timeEnd('solve');
@@ -69,9 +69,9 @@ function displayGrid(grid: string[][], move: Move): void {
       }
       if (start === true && index < move.word.length) {
         if (grid[y][x] !== '.') {
-          lineOutput += ' ' + move.word.charAt(index) + ' ';
+          lineOutput += ' ' + move.word[index] + ' ';
         } else {
-          lineOutput += ' \x1b[32m' + move.word.charAt(index) + '\x1b[0m ';
+          lineOutput += ' \x1b[32m' + move.word[index] + '\x1b[0m ';
         }
         index++;
         return;

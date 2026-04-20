@@ -46,8 +46,14 @@ export interface Anchor {
 export const EMPTY_MASK: number[] = [];
 
 export interface Move {
-  word: string;
-  usedLetters: string;
+  // Sequence of tiles that form the word. Each element is a single tile string
+  // — which for digraph-alphabet locales (es "CH"/"LL", ca "L·L", cy, hu, hr…)
+  // may span multiple UTF-16 code units. `word.length` is the tile count.
+  // Blank tiles render lowercase; regular tiles uppercase.
+  word: readonly string[];
+  // Subset of `word` that was actually placed from the rack (excludes tiles
+  // already on the board). Same tile-array shape as `word`.
+  usedLetters: readonly string[];
   score: number;
   row: number;
   col: number;

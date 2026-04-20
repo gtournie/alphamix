@@ -25,6 +25,17 @@ export const TILE_INFO_BY_LOCALES: Record<string, TileInfo> = Object.entries(til
   // host ICU version, which would desync char_ids between compression time and runtime.
   const letters = Object.keys(info.TILE_SCORES).sort();
 
+  // Boundary check: TILE_INFO is hand-written dev data. A copy-paste from a
+  // decomposed-normalized source (macOS filesystems, some text exports) would
+  // silently break tokenization (NFD "é" is two code points). NFC-enforce once
+  // here rather than sprinkling `.normalize('NFC')` on the hot path.
+  for (let i = 0, len = letters.length; i < len; i++) {
+    const k = letters[i];
+    if (k.normalize('NFC') !== k) {
+      throw new Error(`TILE_SCORES key "${k}" for locale "${locale}" is not NFC-normalized`);
+    }
+  }
+
   const idToCharMutable: string[] = new Array(letters.length + 1);
   idToCharMutable[SEPARATOR_ID] = SEPARATOR;
   for (let i = 0, len = letters.length; i < len; i++) idToCharMutable[i + 1] = letters[i];

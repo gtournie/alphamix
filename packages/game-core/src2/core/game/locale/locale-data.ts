@@ -1,4 +1,5 @@
 import { TILE_INFO_BY_LOCALES } from "./tile-configs";
+import { tokenizeTiles } from "./tokenize-tiles";
 
 /**
  * Runtime wrapper around a GADDAG binary. Alphabet data comes entirely from
@@ -28,10 +29,9 @@ export default class LocaleData {
   // SEPARATOR_ID (0) is 0. Int32Array for cache-friendly indexed reads in
   // `calculateScore`'s hot loop.
   public readonly tileScoresByCharId: Int32Array;
-  // charId-indexed UTF-16 code points. Used by the move emitter when it
-  // materialises output strings via `String.fromCharCode(...codes)`.
-  public readonly upperCharCodeByCharId: Uint16Array;
-  public readonly lowerCharCodeByCharId: Uint16Array;
+  // upperAlphabet without the separator at index 0 — the actual set of legal
+  // tiles. Used by `tokenize()` as the longest-match alphabet.
+  public readonly upperTiles: readonly string[];
   public readonly tileBagNewContent: string[];
   // Pre-allocated "accept every letter" mask, shared across all cells without a
   // vertical neighbor. Most cells in the early game fall into this bucket — sharing
@@ -61,20 +61,15 @@ export default class LocaleData {
     this.tileBagNewContent = tileInfo.TILE_BAG_NEW_CONTENT;
     this.charToIdMap = tileInfo.CHAR_TO_ID;
 
-    // Build the charId-indexed score + charCode tables. Never mutated after
-    // construction. `tileScores` is keyed by upper-case letter; charId 0 is
-    // the separator (no score / no code).
+    // Build the charId-indexed score table. Never mutated after construction.
+    // `tileScores` is keyed by upper-case letter; charId 0 is the separator
+    // (no score).
     const scoresByCharId = new Int32Array(this.alphabetSize);
-    const upperCodes = new Uint16Array(this.alphabetSize);
-    const lowerCodes = new Uint16Array(this.alphabetSize);
     for (let i = 1; i < this.alphabetSize; i++) {
       scoresByCharId[i] = this.tileScores[this.upperAlphabet[i]] ?? 0;
-      upperCodes[i] = this.upperAlphabet[i].charCodeAt(0);
-      lowerCodes[i] = this.lowerAlphabet[i].charCodeAt(0);
     }
     this.tileScoresByCharId = scoresByCharId;
-    this.upperCharCodeByCharId = upperCodes;
-    this.lowerCharCodeByCharId = lowerCodes;
+    this.upperTiles = this.upperAlphabet.slice(1);
 
     const fullMask = new Array<number>(this.alphabetSize).fill(1);
     fullMask[0] = 0;
@@ -98,6 +93,20 @@ export default class LocaleData {
       throw new Error(`Unknown char "${c}" (code ${c.charCodeAt(0)}) for locale "${this.locale}"`);
     }
     return id;
+  }
+
+  /**
+   * Tokenises `word` into a sequence of charIds using greedy longest-match over
+   * `upperTiles`. Assumes NFC/uppercase input — the caller (dict compiler,
+   * TILE_INFO builder) owns validation at the data-ingestion boundary.
+   */
+  public tokenize(word: string): number[] {
+    const tiles = tokenizeTiles(word, this.upperTiles);
+    const out = new Array<number>(tiles.length);
+    for (let i = 0, len = tiles.length; i < len; i++) {
+      out[i] = this.charToId(tiles[i]);
+    }
+    return out;
   }
 
   /**

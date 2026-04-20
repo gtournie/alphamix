@@ -178,7 +178,7 @@ function summarise(samples: number[]): StatsSummary {
 
 function benchOne(scenario: Scenario, cli: Cli): ScenarioResult {
   const locale = loadLocale('fr');
-  const board = new Board(locale, scenario.makeGrid(), parseRack(locale, scenario.rack));
+  const board = new Board(locale, scenario.makeGrid(), parseRack(locale, [...scenario.rack]));
 
   // Fail-loud: a fixture producing 0 moves means something is broken.
   const probe = board.moves();

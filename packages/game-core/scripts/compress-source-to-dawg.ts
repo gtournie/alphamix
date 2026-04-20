@@ -25,6 +25,58 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { TILE_INFO_BY_LOCALES } from '../src2/core/game/locale/tile-configs';
+import { tokenizeTiles } from '../src2/core/game/locale/tokenize-tiles';
+
+// Locales whose alphabet contains digraphes/trigraphes that can collide under
+// greedy longest-match tokenization. For these, morphology (compound words,
+// prefix+root boundaries) produces sequences where the orthographically
+// correct decomposition disagrees with what greedy picks. Ambiguous entries
+// should be authored in the pre-tokenized source format (space-separated
+// tiles, e.g. `"LL O N G Y F A R C H"`) — see resolveTokens() below.
+//
+// Documented examples per locale:
+//   - hu (Hungarian) : házszám = ház+szám, NOT há+zs+zám
+//   - hr/sr-latn (Croatian/Serbian) : nadživjeti = nad+živjeti, with d+ž distinct, NOT dž
+//   - cy (Welsh) : llongyfarch has n+g separate (/ŋg/), not ng digraph
+//
+// Safe by construction (not listed here): es, ca, nl (historical IJ).
+const GREEDY_UNSAFE_LOCALES = new Set(['hu', 'hr', 'sr-latn', 'cy']);
+
+function warnOnGreedyUnsafeLocale(locale: string): void {
+  if (!GREEDY_UNSAFE_LOCALES.has(locale)) return;
+  console.warn(
+    `[${locale}] WARNING: locale "${locale}" has digraphes that may not be unambiguously recovered by greedy longest-match tokenization. ` +
+    `For ambiguous words, use the pre-tokenized source format — put tiles separated by spaces, e.g. \`"LL O N G Y F A R C H"\` instead of \`"LLONGYFARCH"\`. ` +
+    `Keys without spaces are tokenized greedily (fine for unambiguous entries).`
+  );
+}
+
+/**
+ * Resolves a source-dict key to a (word, tokens) pair. Two source formats are
+ * supported and detected by the presence of a space in the key:
+ *
+ *   - "LLONGYFARCH"         → greedy tokenization
+ *   - "LL O N G Y F A R C H" → tokens taken as-is, zero greedy (override)
+ *
+ * Each token of a pre-tokenized key must be a known tile of the locale's
+ * alphabet. No tile contains a space, so detection is unambiguous.
+ */
+export function resolveTokens(
+  key: string,
+  tileSet: ReadonlySet<string>,
+  tiles: readonly string[]
+): { word: string; tokens: string[] } {
+  if (key.includes(' ')) {
+    const tokens = key.split(' ');
+    for (const t of tokens) {
+      if (!tileSet.has(t)) {
+        throw new Error(`Pre-tokenized key "${key}" contains unknown tile "${t}"`);
+      }
+    }
+    return { word: tokens.join(''), tokens };
+  }
+  return { word: key, tokens: tokenizeTiles(key, tiles) };
+}
 
 // `import.meta.dir` is Bun-only; under Vitest (Node) this script is imported
 // just for `compressToDawg`, and top-level `import.meta.dir` resolves to
@@ -57,13 +109,13 @@ interface Node {
 export function dawgContains(
   data: Uint32Array,
   charToId: ReadonlyMap<string, number>,
-  word: string
+  tokens: readonly string[]
 ): boolean {
   let currentIndex = 1;
-  const wordLen = word.length;
+  const tokenLen = tokens.length;
 
-  for (let i = 0; i < wordLen; i++) {
-    const targetCharId = charToId.get(word.charAt(i));
+  for (let i = 0; i < tokenLen; i++) {
+    const targetCharId = charToId.get(tokens[i]);
     if (targetCharId === undefined) return false;
 
     while (true) {
@@ -72,7 +124,7 @@ export function dawgContains(
       const hasMore = (nodeVal >>> 24) & 0x1;
 
       if (charId === targetCharId) {
-        if (i === wordLen - 1) return ((nodeVal >>> 25) & 0x1) === 1;
+        if (i === tokenLen - 1) return ((nodeVal >>> 25) & 0x1) === 1;
         const nextIndex = nodeVal & 0xFFFFFF;
         if (nextIndex === 0) return false; // leaf — no longer word shares this prefix
         currentIndex = nextIndex;
@@ -93,12 +145,23 @@ export function dawgContains(
  * index 1). Downstream consumers — notably the WASM converter — rely on this
  * layout, so the buffer must never be sliced before being passed along.
  */
-export function compressToDawg(words: string[], locale: string): Uint32Array {
+export function compressToDawg(sourceKeys: string[], locale: string): Uint32Array {
   const tileInfo = TILE_INFO_BY_LOCALES[locale];
   if (!tileInfo) throw new Error(`No TILE_INFO for locale "${locale}"`);
   const ID_TO_CHAR = tileInfo.ID_TO_CHAR;
   const CHAR_TO_ID = tileInfo.CHAR_TO_ID;
   const alphabetLen = ID_TO_CHAR.length;
+  // Tile set passed to resolveTokens — alphabet without the separator. Greedy
+  // longest-match picks "CH" over "C"+"H" for digraph-alphabet locales, unless
+  // the source key is already pre-tokenized (space-separated).
+  const tiles = ID_TO_CHAR.slice(1);
+  const tileSet = new Set(tiles);
+
+  warnOnGreedyUnsafeLocale(locale);
+
+  // Resolve each source key to a (word, tokens) pair once; reused for both
+  // trie-building and the post-compression verify pass.
+  const entries = sourceKeys.map(k => resolveTokens(k, tileSet, tiles));
 
   // PASS 1: Build the trie
   let estimatedGaddagNodes = 1;
@@ -113,14 +176,14 @@ export function compressToDawg(words: string[], locale: string): Uint32Array {
   };
 
   console.time('  build trie');
-  for (const word of words) {
-    const len = word.length;
+  for (const { word, tokens } of entries) {
+    const len = tokens.length;
     estimatedGaddagNodes += len * (len + 1);
     let current = root;
 
     for (let i = 0; i < len; i++) {
-      const charId = CHAR_TO_ID.get(word.charAt(i));
-      if (charId === undefined) throw new Error(`Char "${word.charAt(i)}" in word "${word}" not in alphabet`);
+      const charId = CHAR_TO_ID.get(tokens[i]);
+      if (charId === undefined) throw new Error(`Tile "${tokens[i]}" in word "${word}" not in alphabet`);
       let next = current.children[charId];
       if (!next) {
         current.children[charId] = next = {
@@ -227,13 +290,13 @@ export function compressToDawg(words: string[], locale: string): Uint32Array {
   const dawgArray = buildUint32Array(minifiedRoot);
 
   console.time('  verify');
-  const unfound = words.find(word => !dawgContains(dawgArray, CHAR_TO_ID, word));
+  const unfound = entries.find(e => !dawgContains(dawgArray, CHAR_TO_ID, e.tokens));
   console.timeEnd('  verify');
 
   if (unfound) {
-    throw new Error(`Verification failed: word "${unfound}" not found in DAWG`);
+    throw new Error(`Verification failed: word "${unfound.word}" not found in DAWG`);
   }
-  console.log(`  Dictionary complete: ${words.length} words verified`);
+  console.log(`  Dictionary complete: ${entries.length} words verified`);
 
   return dawgArray;
 }
@@ -267,7 +330,18 @@ async function main() {
     const dictModule = await import(path.join(DICTIONARIES_DIR, file));
     const dict: Map<string, string> = dictModule.default;
 
-    const words = [...dict.keys()].map(w => w.toLocaleUpperCase(locale));
+    // Data-ingestion boundary: dict source files can come from exports / other
+    // tools / copy-paste on macOS (which stores filenames in NFD). Enforce NFC
+    // here so downstream `tokenizeTiles` matches tiles byte-for-byte against
+    // `TILE_SCORES` keys (themselves NFC-checked in tile-configs.ts).
+    const words = [...dict.keys()].map(w => {
+      const upper = w.toLocaleUpperCase(locale);
+      const nfc = upper.normalize('NFC');
+      if (nfc !== upper) {
+        throw new Error(`Dict word "${w}" (locale "${locale}") is not NFC-normalized after uppercasing`);
+      }
+      return nfc;
+    });
 
     console.log(`  ${words.length} words loaded`);
 

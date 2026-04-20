@@ -304,7 +304,7 @@ export class Board {
       const a = anchors[i];
       // Initially, we walk LEFT from the anchor. `minCol` caps how far left we
       // may place rack tiles (see Anchor.minCol comment).
-      this.goLeft(isVertical, moves, a.row, a.col, rootIdx, grid[a.row], histogram, blankCount, 0, 0, false, a.col, a.minCol);
+      this.goLeft(isVertical, moves, a.row, a.col, rootIdx, grid[a.row], histogram, blankCount, 0, 0, a.col, a.minCol);
     }
   }
 
@@ -376,55 +376,46 @@ export class Board {
     col: number,
     cells: Cell[],
     wordLen: number,
-    usedCount: number,
-    hasWordBlank: boolean
+    usedCount: number
   ): void {
     const startCol = col - wordLen;
     const bonusGrid = isVertical ? INVERTED_BONUS_GRID : BONUS_GRID;
     const score = this.calculateScore(bonusGrid, cells, row, startCol, col, usedCount);
 
     const ld = this.localeData;
-    const upperCodesTbl = ld.upperCharCodeByCharId;
+    const upperTbl = ld.upperAlphabet;
+    const lowerTbl = ld.lowerAlphabet;
     const wordBuf = this.wordBuf;
     const isBlankBuf = this.isBlankBuf;
     const isFromRackBuf = this.isFromRackBuf;
-    const wordCodes = new Array<number>(wordLen);
-    const needKey = hasWordBlank;
+    const word = new Array<string>(wordLen);
     const needUsed = usedCount !== wordLen;
-    const keyCodes = needKey ? new Array<number>(wordLen) : wordCodes;
-    const usedCodes = needUsed ? new Array<number>(usedCount) : wordCodes;
+    const usedLetters = needUsed ? new Array<string>(usedCount) : word;
+    // Key uses charId-based encoding so multi-char tiles can't collide with the
+    // concatenation of their components (e.g. tile "CH" vs tiles "C"+"H"):
+    //   - non-blank tile → 1 code unit (the charId, in range 1..alphabetSize-1)
+    //   - blank tile     → 2 code units (charId followed by SEPARATOR_ID=0).
+    // SEPARATOR_ID never appears as a real charId, so the blank marker is
+    // unambiguous. Position digits (48..57 ASCII) don't overlap with charIds
+    // (1..42) or SEPARATOR_ID (0), so concatenation with the position suffix is
+    // injective without an explicit separator.
+    const keyCodes: number[] = [];
 
-    if (needKey || needUsed) {
-      const lowerCodesTbl = ld.lowerCharCodeByCharId;
-      let usedIdx = 0;
-      for (let p = startCol, w = 0; p < col; p++, w++) {
-        const cid = wordBuf[p];
-        const upperCode = upperCodesTbl[cid];
-        if (needKey) keyCodes[w] = upperCode;
-        if (isBlankBuf[p]) {
-          const lowerCode = lowerCodesTbl[cid];
-          wordCodes[w] = lowerCode;
-          if (needUsed && isFromRackBuf[p]) usedCodes[usedIdx++] = lowerCode;
-        } else {
-          wordCodes[w] = upperCode;
-          if (needUsed && isFromRackBuf[p]) usedCodes[usedIdx++] = upperCode;
-        }
-      }
-    } else {
-      for (let p = startCol, w = 0; p < col; p++, w++) {
-        wordCodes[w] = upperCodesTbl[wordBuf[p]];
-      }
+    let usedIdx = 0;
+    for (let p = startCol, w = 0; p < col; p++, w++) {
+      const cid = wordBuf[p];
+      const isBlank = isBlankBuf[p];
+      const tile = isBlank ? lowerTbl[cid] : upperTbl[cid];
+      word[w] = tile;
+      if (needUsed && isFromRackBuf[p]) usedLetters[usedIdx++] = tile;
+      keyCodes.push(cid);
+      if (isBlank) keyCodes.push(SEPARATOR_ID);
     }
-    const word = String.fromCharCode(...wordCodes);
-    const keyWord = needKey ? String.fromCharCode(...keyCodes) : word;
-    const usedLetters = needUsed ? String.fromCharCode(...usedCodes) : word;
 
-    // Pack (row, col, dir) into a 9-bit int appended to the all-uppercase
-    // keyWord. Unambiguous because keyWord is pure uppercase letters (never
-    // digits), so the digit suffix parses unambiguously.
     const mRow = isVertical ? startCol : row;
     const mCol = isVertical ? row : startCol;
-    const normalizedKey = keyWord + (mRow * 32 + mCol * 2 + (isVertical ? 1 : 0));
+    const normalizedKey =
+      String.fromCharCode(...keyCodes) + (mRow * 32 + mCol * 2 + (isVertical ? 1 : 0));
     const existing = moves.get(normalizedKey);
     if (!existing || score > existing.score) {
       moves.set(normalizedKey, {
@@ -445,8 +436,7 @@ export class Board {
     histogram: number[],
     blankCount: number,
     wordLen: number,
-    usedCount: number,
-    hasWordBlank: boolean
+    usedCount: number
   ): void {
     // Hoist hot fields — see comment on wordBuf/isBlankBuf/isFromRackBuf above.
     const ld = this.localeData;
@@ -461,7 +451,7 @@ export class Board {
     // JSC doesn't count that block against goRight's inline budget. The hot
     // tree walker below stays small and inlineable.
     if ((gaddag[nodeIdx] >>> 25) & 0x1 && (col >= 15 || cells[col].charId === EMPTY_ID)) {
-      this.emitMove(isVertical, moves, row, col, cells, wordLen, usedCount, hasWordBlank);
+      this.emitMove(isVertical, moves, row, col, cells, wordLen, usedCount);
     }
 
     // 2. Can we continue going right?
@@ -477,7 +467,7 @@ export class Board {
         const cellIsBlank = existingCell.isBlank;
         isBlankBuf[col] = cellIsBlank ? 1 : 0;
         isFromRackBuf[col] = 0;
-        this.goRight(isVertical, moves, row, col + 1, nextNode, cells, histogram, blankCount, wordLen + 1, usedCount, hasWordBlank || cellIsBlank);
+        this.goRight(isVertical, moves, row, col + 1, nextNode, cells, histogram, blankCount, wordLen + 1, usedCount);
       }
       return;
     }
@@ -503,13 +493,13 @@ export class Board {
           if (histogram[childCharId] > 0) {
             histogram[childCharId]--;
             isBlankBuf[col] = 0;
-            this.goRight(isVertical, moves, row, col + 1, curIdx, cells, histogram, blankCount, wordLen + 1, usedCount + 1, hasWordBlank);
+            this.goRight(isVertical, moves, row, col + 1, curIdx, cells, histogram, blankCount, wordLen + 1, usedCount + 1);
             histogram[childCharId]++;
           }
           // Then as a blank — same GADDAG path, zero letter score.
           if (blankCount > 0) {
             isBlankBuf[col] = 1;
-            this.goRight(isVertical, moves, row, col + 1, curIdx, cells, histogram, blankCount - 1, wordLen + 1, usedCount + 1, true);
+            this.goRight(isVertical, moves, row, col + 1, curIdx, cells, histogram, blankCount - 1, wordLen + 1, usedCount + 1);
           }
         }
         hasMore = (nv & 0x1000000) !== 0;
@@ -529,7 +519,6 @@ export class Board {
     blankCount: number,
     wordLen: number,
     usedCount: number,
-    hasWordBlank: boolean,
     anchorCol: number,
     minCol: number
   ): void {
@@ -543,7 +532,7 @@ export class Board {
     // 1. Can we pivot to the right?
     const separatorIdx = ld.findDataChild(nodeIdx, SEPARATOR_ID);
     if (separatorIdx !== -1 && (col < 0 || cells[col].charId === EMPTY_ID)) {
-      this.goRight(isVertical, moves, row, anchorCol + 1, separatorIdx, cells, histogram, blankCount, wordLen, usedCount, hasWordBlank);
+      this.goRight(isVertical, moves, row, anchorCol + 1, separatorIdx, cells, histogram, blankCount, wordLen, usedCount);
     }
 
     // 2. Can we continue going left?
@@ -562,7 +551,7 @@ export class Board {
         const cellIsBlank = existingCell.isBlank;
         isBlankBuf[col] = cellIsBlank ? 1 : 0;
         isFromRackBuf[col] = 0;
-        this.goLeft(isVertical, moves, row, col - 1, nextNodeIdx, cells, histogram, blankCount, wordLen + 1, usedCount, hasWordBlank || cellIsBlank, anchorCol, col);
+        this.goLeft(isVertical, moves, row, col - 1, nextNodeIdx, cells, histogram, blankCount, wordLen + 1, usedCount, anchorCol, col);
       }
       return;
     }
@@ -583,12 +572,12 @@ export class Board {
           if (histogram[childCharId] > 0) {
             histogram[childCharId]--;
             isBlankBuf[col] = 0;
-            this.goLeft(isVertical, moves, row, col - 1, curIdx, cells, histogram, blankCount, wordLen + 1, usedCount + 1, hasWordBlank, anchorCol, minCol);
+            this.goLeft(isVertical, moves, row, col - 1, curIdx, cells, histogram, blankCount, wordLen + 1, usedCount + 1, anchorCol, minCol);
             histogram[childCharId]++;
           }
           if (blankCount > 0) {
             isBlankBuf[col] = 1;
-            this.goLeft(isVertical, moves, row, col - 1, curIdx, cells, histogram, blankCount - 1, wordLen + 1, usedCount + 1, true, anchorCol, minCol);
+            this.goLeft(isVertical, moves, row, col - 1, curIdx, cells, histogram, blankCount - 1, wordLen + 1, usedCount + 1, anchorCol, minCol);
           }
         }
         hasMore = (nv & 0x1000000) !== 0;

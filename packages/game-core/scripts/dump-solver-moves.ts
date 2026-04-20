@@ -51,7 +51,7 @@ const grid = [
   'E..............',
 ].map(line => [...line]);
 
-const rack = parseRack(localeData, 'PTBYE??');
+const rack = parseRack(localeData, [...'PTBYE??']);
 
 const board = new Board(localeData, grid, rack);
 const moves = [...board.moves().values()];
@@ -60,4 +60,4 @@ const sorted = sortMoves(moves);
 fs.writeFileSync(FIXTURE_PATH, JSON.stringify(sorted, null, 2) + '\n');
 
 console.log(`Wrote ${sorted.length} moves to ${FIXTURE_PATH}`);
-console.log(`Best score: ${sorted[0]?.score} (${sorted[0]?.word} @ ${sorted[0]?.row},${sorted[0]?.col} ${sorted[0]?.dir})`);
+console.log(`Best score: ${sorted[0]?.score} (${sorted[0]?.word.join('')} @ ${sorted[0]?.row},${sorted[0]?.col} ${sorted[0]?.dir})`);
